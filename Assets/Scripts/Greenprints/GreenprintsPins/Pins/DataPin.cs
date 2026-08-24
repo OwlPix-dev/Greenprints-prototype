@@ -8,13 +8,18 @@ public class DataPin : Pin
     {
         get
         {
-            return _value;
+            return _value;//
         }
         set => _value = value;
     }
 
-    public DataPin(string pinName, PinDirection pinDirection, Node owner, GreenprintsValueType greenprintsValueType) :
-        base(pinName, pinDirection, owner)
+    public DataPin(
+          string pinName
+        , PinDirection pinDirection
+        , Node owner
+        , Greenprints greenprints
+        , GreenprintsValueType greenprintsValueType) :
+        base(pinName, pinDirection, owner, greenprints)
     {
         _greenprintsValueType = greenprintsValueType;
     }
@@ -29,5 +34,18 @@ public class DataPin : Pin
         }
 
         return true;
+    }
+
+    public override void SendSignal(object sendValue = null)
+    {
+        foreach (Pin pin in Connections)
+        {
+            pin.ReceiveSignal(sendValue);
+        }
+    }
+
+    public override void ReceiveSignal(object receiveValue = null)
+    {
+        _value = receiveValue;
     }
 }

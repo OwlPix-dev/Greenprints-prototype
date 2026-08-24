@@ -1,6 +1,7 @@
 public class ExecutionPin : Pin
 {
-    public ExecutionPin(string pinName, PinDirection pinDirection, Node owner) : base(pinName, pinDirection, owner) { }
+    public ExecutionPin(string pinName, PinDirection pinDirection, Node owner, Greenprints greenprints) :
+        base(pinName, pinDirection, owner, greenprints) { }
 
     public override bool IsCanConnect(Pin connectPin)
     {
@@ -12,5 +13,15 @@ public class ExecutionPin : Pin
         }
 
         return true;
+    }
+
+    public override void SendSignal(object sendValue = null)
+    {
+        Connections[0].ReceiveSignal();
+    }
+
+    public override void ReceiveSignal(object receiveValue = null)
+    {
+        Greenprints.NodesInWork.Add(Owner);
     }
 }
