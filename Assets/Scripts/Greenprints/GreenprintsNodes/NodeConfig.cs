@@ -15,8 +15,8 @@ public abstract class NodeConfig : MonoBehaviour
 
     public abstract void Active(Node node);
 
-    public Node GetNode(Vector2 position)
+    public Node GetNode(Vector2 position, Greenprints greenprints)
     {
-        return new Node(this, _inputPins, _outputPins, position);
+        return new Node(this, _inputPins, _outputPins, position, greenprints);
     }
 }

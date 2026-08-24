@@ -15,7 +15,7 @@ public class Node
         set => _position = value;
     }
 
-    public Node(NodeConfig nodeConfig, PinConfig[] inputPins, PinConfig[] outputPins, Vector2 position)
+    public Node(NodeConfig nodeConfig, PinConfig[] inputPins, PinConfig[] outputPins, Vector2 position, Greenprints greenprints)
     {
         _nodeConfig = nodeConfig;
 
@@ -27,8 +27,8 @@ public class Node
                 GreenprintsValueType valueType = pinConfig.ValueType;
 
                 _pins.Add(valueType != null ?
-                    new DataPin(name, pinDirection, this, valueType) :
-                    new ExecutionPin(name, pinDirection, this));
+                    new DataPin(name, pinDirection, this, greenprints, valueType) :
+                    new ExecutionPin(name, pinDirection, this, greenprints));
             }
         }
 
