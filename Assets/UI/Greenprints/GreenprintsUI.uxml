@@ -1,0 +1,20 @@
+<ui:UXML xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <Style src="project://database/Assets/UI/Greenprints/GreenprintsUI.uss?fileID=7433441132597879392&amp;guid=70195638c88e065468892af7e0b0e51b&amp;type=3#GreenprintsUI" />
+    <ui:VisualElement name="Bg" class="bg">
+        <ui:VisualElement name="TitleBar" class="title-bar">
+            <ui:VisualElement name="Icon" class="title-bar-icon" />
+            <ui:Label text="Greenprints" name="Name" class="title-bar-name" />
+            <ui:VisualElement name="Space" style="flex-grow: 1;" />
+        </ui:VisualElement>
+        <ui:VisualElement name="WorkZone" class="work-zone">
+            <ui:ScrollView name="Nodes" mode="VerticalAndHorizontal" class="nodes-container">
+                <ui:VisualElement name="Canvas" class="nodes-canvas" />
+            </ui:ScrollView>
+            <ui:ScrollView name="Variables" horizontal-scroller-visibility="Hidden" vertical-scroller-visibility="Hidden" class="variables-list">
+                <ui:VisualElement name="Container" class="variables-container" style="flex-grow: 1;" />
+            </ui:ScrollView>
+            <ui:VisualElement name="AvailableNodes" class="add-node-container" />
+        </ui:VisualElement>
+        <ui:Label text="Add numbers" name="DragNodeName" picking-mode="Ignore" class="drag-node-name" style="visibility: hidden;" />
+    </ui:VisualElement>
+</ui:UXML>

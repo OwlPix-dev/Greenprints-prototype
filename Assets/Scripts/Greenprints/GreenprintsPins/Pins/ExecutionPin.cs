@@ -17,7 +17,10 @@ public class ExecutionPin : Pin
 
     public override void SendSignal(object sendValue = null)
     {
-        Connections[0].ReceiveSignal();
+        if (Connections.Count > 0)
+        {
+            Connections[0].ReceiveSignal();
+        }
     }
 
     public override void ReceiveSignal(object receiveValue = null)
