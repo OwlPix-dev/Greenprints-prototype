@@ -1,5 +1,5 @@
-using System;
 using System.Linq;
+using System;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -9,33 +9,15 @@ public class GreenprintsUIController : MonoBehaviour
 
     [SerializeField] private ButtonsContainerData _titleBarBtns;
 
-    [SerializeField] private string _workZoneClassName;
+    [SerializeField] private GreenprintsManagerBtnState _managerBtnOpenAvailableNodesState;
+    [SerializeField] private GreenprintsManagerBtnState _managerBtnCloseAvailableNodesState;
+    [SerializeField] private GreenprintsManagerBtnState _managerBtnDeleteNodeState;
 
-    [SerializeField] private string _canvasScrollerClassName;
-    [SerializeField] private string _canvasClassName;
+    [SerializeField] private Vector2Int _nodeGridSize = new Vector2Int(20, 20);
+    [SerializeField] private Vector2Int _pinConnectionPointGridSize = new Vector2Int(5, 5);
 
-    [SerializeField] private string _nodeManagerBtnClassName;
-    [SerializeField] private string _availableNodesContainerClassName;
-    [SerializeField] private string _availableNodeClassName;
-
-    [SerializeField] private string _dragNodeNameClassName;
-
-    [SerializeField] private string _nodeContainerClassName;
-    [SerializeField] private string _nodeTitleClassName;
-    [SerializeField] private string _nodePinsZoneClassName;
-    [SerializeField] private string _nodePinsContainerClassName;
-    [SerializeField] private string _nodePinsSpaceClassName;
-    [SerializeField] private string _nodeInputPinContainerClassName;
-    [SerializeField] private string _nodeOutputPinContainerClassName;
-    [SerializeField] private string _nodePinClassName;
-    [SerializeField] private string _nodePinNameClassName;
-
-    [SerializeField] private string _nodeManagerOpenAvailableNodesBtnText = "►Add node";
-    [SerializeField] private string _nodeManagerCloseAvailableNodesBtnText = "▼Add node";
-    [SerializeField] private string _nodeManagerDeleteNodeBtnText = "Delete Node";
-
-    [SerializeField] private Vector2Int _gridSize = new Vector2Int(20, 20);
     [SerializeField] private Vector2 _availableNodeOffset = new Vector2(40f, 40f);
+    [SerializeField] private Vector2 _pinConnectionPointOffset = Vector2.zero;
 
     [SerializeField] private int _dragMouseIndex;
 
@@ -44,25 +26,42 @@ public class GreenprintsUIController : MonoBehaviour
     private ScrollView _canvasScroller;
     private VisualElement _canvas;
 
+    private VisualElement _nodesLayer;
+    private VisualElement _pinConnectionsLayer;
+
     private Button _nodeManagerBtn;
     private VisualElement _availableNodesContainer;
 
-    private VisualElement _dragNodeTitle;
-    private Label _dragNodeName;
-
-    private VisualElement _currentDragNodeTitle;
-
-    private NodeConfig _dragNodeConfig;
-    private Node _dragNode;
+    private GreenprintsDragElement _currentDragElement;
 
     private Greenprints _greenprints;
 
-    private Vector2 _oldNodePosition;
-    private Vector2 _nodeTitleOffset;
+    private PinConnection _pinConnectionDebug;
 
-    private bool _isDragging => _dragNodeConfig != null;
+    private bool _isDragging => _currentDragElement != null;
+
+    public Vector2Int NodeGridSize => _nodeGridSize;
+    public Vector2Int PinConnectionPointGridSize => _pinConnectionPointGridSize;
+
+    public VisualElement Root => _root;
+
+    public VisualElement NodesLayer => _nodesLayer;
+    public VisualElement PinConnectionsLayer => _pinConnectionsLayer;
+
+    public Button NodeManagerBtn => _nodeManagerBtn;
+
+    public Greenprints Greenprints => _greenprints;
+
+    public GreenprintsDragElement CurrentDragElement
+    {
+        get => _currentDragElement;
+        set => _currentDragElement = value;
+    }
 
     public bool IsActive => _greenprints != null;
+
+    public Action OnCanvasHover;
+    public Action OnCanvasLeave;
 
     private void Update()
     {
@@ -72,44 +71,35 @@ public class GreenprintsUIController : MonoBehaviour
 
             foreach (UINode uINode in _greenprints.UINodes)
             {
-                Debug.Log($"--- node {uINode.Node}");
+                Debug.Log($"--- node {uINode.Node}, {uINode.NodeTitle.worldBound.size}");
             }
+
+            _pinConnectionDebug = new PinConnection(
+                  this
+                , Color.white
+                , 4f
+                , new Vector2(100, 100)
+                , new Vector2(250, 200));
+
+            _pinConnectionsLayer.Add(_pinConnectionDebug);
+        }
+
+        if (Input.GetKeyDown(KeyCode.F))
+        {
+            _pinConnectionDebug.AddPoint(1, new Vector2(200, 100));
         }
 
         if (!_isDragging) { return; }
 
-        SetDragNodePosition(GetMousePosition());
+        _currentDragElement.MoveDragElement();
 
         if (Input.GetMouseButtonUp(_dragMouseIndex))
         {
-            VisualElement pickElement = _root.panel.Pick(_currentDragNodeTitle.worldBound.position);
+            _currentDragElement.DropDragElement();
 
-            if (pickElement == _canvas)
-            {
-                if (_dragNode == null)
-                {
-                    Node newNode = _dragNodeConfig.GetNode(_currentDragNodeTitle.worldBound.position, _greenprints);
+            _currentDragElement = null;
 
-                    _greenprints.UINodes.Add(new UINode(newNode, _dragNodeTitle));
-                }
-            }
-            else if (pickElement == _nodeManagerBtn)
-            {
-                _greenprints.UINodes.Remove(GetUINodeFromTitle(_dragNodeTitle));
-
-                _dragNodeTitle.RemoveFromHierarchy();
-            }
-            else
-            {
-                if (_dragNode != null)
-                {
-                    CancelDrag();
-                }
-            }
-
-            SetPickingModeNode(PickingMode.Position, _dragNodeTitle);
-
-            EndDrag();
+            SetManagerBtnState(_managerBtnOpenAvailableNodesState);
         }
     }
 
@@ -123,34 +113,37 @@ public class GreenprintsUIController : MonoBehaviour
         {
             _titleBarBtns.DrawButtons(_root);
 
-            _canvasScroller = _root.Q<ScrollView>(className: _canvasScrollerClassName);
-            _canvas = _root.Q<VisualElement>(className: _canvasClassName);
+            GreenprintsClassNamesData uIData = GetUIData();
 
-            _availableNodesContainer = _root.Q<VisualElement>(className: _availableNodesContainerClassName);
+            _canvasScroller = _root.Q<ScrollView>(className: uIData.CanvasScrollerClassName);
+            _canvas = _root.Q<VisualElement>(className: uIData.CanvasClassName);
 
-            _dragNodeName = _root.Q<Label>(className: _dragNodeNameClassName);
+            _nodesLayer = _canvas.Q<VisualElement>(uIData.NodesLayerName);
+            _pinConnectionsLayer = _canvas.Q<VisualElement>(uIData.PinsConnectionsLayerName);
+
+            _availableNodesContainer = _root.Q<VisualElement>(className: uIData.AvailableNodesContainerClassName);
 
             foreach (NodeConfig availableNode in _greenprints.AvailableNodes)
             {
                 Label availableNodeName = new Label();
-                availableNodeName.AddToClassList(_availableNodeClassName);
+                availableNodeName.AddToClassList(uIData.AvailableNodeClassName);
 
                 availableNodeName.text = availableNode.TitleName;
                 availableNodeName.style.backgroundColor = new StyleColor(availableNode.NodeAffiliation.AffiliationColor);
 
                 availableNodeName.RegisterCallback<PointerDownEvent>(evt =>
                 {
-                    if (evt.button == _dragMouseIndex)
-                    {
-                        _nodeTitleOffset = _availableNodeOffset;
+                    if (evt.button != _dragMouseIndex) { return; }
 
-                        PickNodeConfig(availableNode);
+                    _currentDragElement = new DragNode(
+                          this
+                        , null
+                        , availableNode
+                        , null
+                        , _availableNodeOffset
+                        , Vector2.zero);
 
-                        SetCurrentDragNodeTitle(_dragNodeName);
-
-                        _canvas.RegisterCallback<PointerEnterEvent>(CanvasHover);
-                        _canvas.UnregisterCallback<PointerLeaveEvent>(CanvasHoverLeave);
-                    }
+                    SetManagerBtnState(_managerBtnDeleteNodeState);
                 });
 
                 _availableNodesContainer.Add(availableNodeName);
@@ -159,14 +152,17 @@ public class GreenprintsUIController : MonoBehaviour
             _canvas.style.width = _greenprints.CanvasSize.x;
             _canvas.style.height = _greenprints.CanvasSize.y;
 
+            _canvas.RegisterCallback<PointerEnterEvent>(evt => OnCanvasHover?.Invoke());
+            _canvas.RegisterCallback<PointerLeaveEvent>(evt => OnCanvasLeave?.Invoke());
+
             _availableNodesContainer.style.visibility = Visibility.Hidden;
 
-            VisualElement workZone = _root.Q<VisualElement>(className: _workZoneClassName);
+            VisualElement workZone = _root.Q<VisualElement>(className: uIData.WorkZoneClassName);
 
             _nodeManagerBtn = new Button();
-            _nodeManagerBtn.AddToClassList(_nodeManagerBtnClassName);
+            _nodeManagerBtn.AddToClassList(uIData.NodeManagerBtnClassName);
 
-            _nodeManagerBtn.text = _nodeManagerOpenAvailableNodesBtnText;
+            SetManagerBtnState(_managerBtnOpenAvailableNodesState);
             _nodeManagerBtn.clicked += () =>
             {
                 ChangeActiveAvailableNodesContainer(_availableNodesContainer.style.visibility == Visibility.Hidden);
@@ -174,30 +170,12 @@ public class GreenprintsUIController : MonoBehaviour
 
             workZone.Add(_nodeManagerBtn);
 
+            RenderGreenprints();
+
             _root.UnregisterCallback<GeometryChangedEvent>(GeometryChanged);
         }
 
         _root.RegisterCallback<GeometryChangedEvent>(GeometryChanged);
-    }
-
-    private void CanvasHover(PointerEnterEvent evt)
-    {
-        if (!_isDragging) { return; }
-
-        SetCurrentDragNodeTitle(_dragNodeTitle);
-
-        _canvas.UnregisterCallback<PointerEnterEvent>(CanvasHover);
-        _canvas.RegisterCallback<PointerLeaveEvent>(CanvasHoverLeave);
-    }
-
-    private void CanvasHoverLeave(PointerLeaveEvent evt)
-    {
-        if (!_isDragging) { return; }
-
-        SetCurrentDragNodeTitle(_dragNodeName);
-
-        _canvas.RegisterCallback<PointerEnterEvent>(CanvasHover);
-        _canvas.UnregisterCallback<PointerLeaveEvent>(CanvasHoverLeave);
     }
 
     public void CloseGreenprints()
@@ -211,140 +189,85 @@ public class GreenprintsUIController : MonoBehaviour
         _uIDocument.enabled = isActive;
     }
 
+    private GreenprintsClassNamesData GetUIData()
+    {
+        return GreenprintsUIAssetReferences.Instance.GreenprintsUIData;
+    }
+
+    public void SetManagerBtnState(GreenprintsManagerBtnState btnState)
+    {
+        if (btnState == _managerBtnDeleteNodeState)
+        {
+            ChangeActiveAvailableNodesContainer(false);
+        }
+
+        _nodeManagerBtn.text = btnState.BtnText;
+    }
+
     private void ChangeActiveAvailableNodesContainer(bool isActive)
     {
         if (isActive)
         {
-            _nodeManagerBtn.text = _nodeManagerCloseAvailableNodesBtnText;
+            SetManagerBtnState(_managerBtnCloseAvailableNodesState);
             _availableNodesContainer.style.visibility = Visibility.Visible;
         }
         else
         {
-            _nodeManagerBtn.text = _nodeManagerOpenAvailableNodesBtnText;
+            SetManagerBtnState(_managerBtnOpenAvailableNodesState);
             _availableNodesContainer.style.visibility = Visibility.Hidden;
         }
     }
 
-    private void PickNodeConfig(NodeConfig nodeConfig)
+    public Vector2 GetCanvasPosition(Vector2 position, Vector2 gridSize)
     {
-        _dragNodeConfig = nodeConfig;
+        Vector2 range = new Vector2(
+                  _canvasScroller.contentContainer.layout.width - _canvasScroller.layout.width
+                , _canvasScroller.contentContainer.layout.height - _canvasScroller.layout.height);
 
-        _dragNodeName.text = _dragNodeConfig.NodeName;
-        _dragNodeName.style.backgroundColor = _dragNodeConfig.NodeAffiliation.AffiliationColor;
-        _dragNodeName.pickingMode = PickingMode.Ignore;
+        Vector2 scrollFactor = new Vector2(
+              range.x > 0 ? _canvasScroller.scrollOffset.x / range.x : 0f
+            , range.y > 0 ? _canvasScroller.scrollOffset.y / range.y : 0f);
 
-        _dragNodeTitle ??= RenderNodeConfig(nodeConfig);
-        SetPickingModeNode(PickingMode.Ignore, _dragNodeTitle);
+        Rect canvasScrollerTransform = _canvasScroller.contentViewport.worldBound;
 
-        ChangeActiveAvailableNodesContainer(false);
-        _nodeManagerBtn.text = _nodeManagerDeleteNodeBtnText;
+        position += new Vector2(
+              (_greenprints.CanvasSize.x - canvasScrollerTransform.width) * scrollFactor.x - canvasScrollerTransform.x
+            , (_greenprints.CanvasSize.y - canvasScrollerTransform.height) * scrollFactor.y - canvasScrollerTransform.y);
 
-        _canvas.Add(_dragNodeTitle);
+        position -= new Vector2(
+              position.x - MathF.Round(position.x / gridSize.x) * gridSize.x
+            , position.y - MathF.Round(position.y / gridSize.y) * gridSize.y);
+
+        return position;
     }
 
-    private void PickNode(Node node)
-    {
-        _dragNode = node;
-
-        PickNodeConfig(node.NodeConfig);
-
-        _canvas.RegisterCallback<PointerLeaveEvent>(CanvasHoverLeave);
-        _canvas.UnregisterCallback<PointerEnterEvent>(CanvasHover);
-    }
-
-    private void SetDragNodePosition(Vector2 position, bool isMustConsiderOffset = true)
-    {
-        if (_currentDragNodeTitle == _dragNodeTitle)
-        {
-            Vector2 range = new Vector2(
-                  _canvasScroller.contentContainer.layout.width - _canvasScroller.contentViewport.layout.width
-                , _canvasScroller.contentContainer.layout.height - _canvasScroller.contentViewport.layout.height);
-
-            Vector2 scrollFactor = new Vector2(
-                  range.x > 0 ? _canvasScroller.scrollOffset.x / range.x : 0f
-                , range.y > 0 ? _canvasScroller.scrollOffset.y / range.y : 0f);
-
-            Rect canvasScrollerTransform = _canvasScroller.contentViewport.worldBound;
-
-            position += new Vector2(
-                  (_greenprints.CanvasSize.x - canvasScrollerTransform.width) * scrollFactor.x - canvasScrollerTransform.x
-                , (_greenprints.CanvasSize.y - canvasScrollerTransform.height) * scrollFactor.y - canvasScrollerTransform.y);
-
-            if (isMustConsiderOffset)
-            {
-                position += _nodeTitleOffset;
-            }
-
-            position -= new Vector2(
-                  position.x - MathF.Round(position.x / _gridSize.x) * _gridSize.x
-                , position.y - MathF.Round(position.y / _gridSize.y) * _gridSize.y);
-
-            Vector2 maxPosition = new Vector2(
-                  _canvas.worldBound.width - _dragNodeTitle.worldBound.width
-                , _canvas.worldBound.height - _dragNodeTitle.worldBound.height);
-
-            position = new Vector2(
-                  Mathf.Clamp(position.x, 0, maxPosition.x)
-                , Mathf.Clamp(position.y, 0, maxPosition.y));
-        }
-
-        _currentDragNodeTitle.style.left = position.x;
-        _currentDragNodeTitle.style.top = position.y;
-    }
-
-    private void CancelDrag()
-    {
-        SetCurrentDragNodeTitle(_dragNodeTitle);
-        SetDragNodePosition(_oldNodePosition, false);
-    }
-
-    private void EndDrag()
-    {
-        _dragNodeName.style.visibility = Visibility.Hidden;
-        _dragNodeTitle = null;
-
-        _dragNodeConfig = null;
-        _dragNode = null;
-
-        _nodeManagerBtn.text = _nodeManagerOpenAvailableNodesBtnText;
-    }
-
-    private Vector2 GetMousePosition()
+    public Vector2 GetMousePosition()
     {
         Vector2 mousePosition = Input.mousePosition;
         mousePosition.y = Screen.height - mousePosition.y;
         return mousePosition;
     }
 
-    private void SetCurrentDragNodeTitle(VisualElement value)
+    public VisualElement GetPickElement(Vector2? position = null)
     {
-        _dragNodeName.style.visibility = Visibility.Hidden;
-        _dragNodeTitle.style.visibility = Visibility.Hidden;
+        position ??= GetMousePosition();
 
-        _currentDragNodeTitle = value;
-        _currentDragNodeTitle.style.visibility = Visibility.Visible;
-        SetDragNodePosition(GetMousePosition());
+        return _root.panel.Pick(position.Value);
     }
 
-    private void SetPickingModeNode(PickingMode pickingMode, VisualElement node)
-    {
-        node.pickingMode = pickingMode;
-
-        Label nodeTitle = node.Q<Label>(className: _nodeTitleClassName);
-        nodeTitle.pickingMode = pickingMode;
-    }
-
-    private UINode GetUINodeFromTitle(VisualElement title)
+    public UINode GetUINodeFromTitle(VisualElement title)
     {
         return _greenprints.UINodes.FirstOrDefault(uINode => title == uINode.NodeTitle);
     }
 
-    private VisualElement RenderNodeConfig(NodeConfig nodeConfig)
+    public VisualElement RenderNodeConfig(NodeConfig nodeConfig)
     {
+        GreenprintsClassNamesData uIData = GetUIData();
+
         VisualElement RenderPinsContainer(PinConfig[] pinConfigs, PinDirection pinDirection, string pinContainerClassName)
         {
             VisualElement pinsContainer = new VisualElement();
-            pinsContainer.AddToClassList(_nodePinsContainerClassName);
+            pinsContainer.AddToClassList(uIData.NodePinsContainerClassName);
 
             foreach (PinConfig pinConfig in pinConfigs)
             {
@@ -352,7 +275,7 @@ public class GreenprintsUIController : MonoBehaviour
                 pinContainer.AddToClassList(pinContainerClassName);
 
                 VisualElement pinIcon = new VisualElement();
-                pinIcon.AddToClassList(_nodePinClassName);
+                pinIcon.AddToClassList(uIData.NodePinClassName);
 
                 Sprite icon = null;
 
@@ -372,7 +295,7 @@ public class GreenprintsUIController : MonoBehaviour
                 pinIcon.style.backgroundImage = new StyleBackground(icon);
 
                 Label pinName = new Label();
-                pinName.AddToClassList(_nodePinNameClassName);
+                pinName.AddToClassList(uIData.NodePinNameClassName);
 
                 pinName.text = pinConfig.PinName;
 
@@ -386,29 +309,29 @@ public class GreenprintsUIController : MonoBehaviour
         }
 
         VisualElement nodeContainer = new VisualElement();
-        nodeContainer.AddToClassList(_nodeContainerClassName);
+        nodeContainer.AddToClassList(uIData.NodeContainerClassName);
 
         Label nodeTitle = new Label();
-        nodeTitle.AddToClassList(_nodeTitleClassName);
+        nodeTitle.AddToClassList(uIData.NodeTitleClassName);
 
         nodeTitle.text = nodeConfig.NodeName;
         nodeTitle.style.backgroundColor = new StyleColor(nodeConfig.NodeAffiliation.AffiliationColor);
 
         VisualElement nodePinsZone = new VisualElement();
-        nodePinsZone.AddToClassList(_nodePinsZoneClassName);
+        nodePinsZone.AddToClassList(uIData.NodePinsZoneClassName);
 
         VisualElement inputPinsContainer = RenderPinsContainer(
               nodeConfig.InputPins
             , PinDirection.Input
-            , _nodeInputPinContainerClassName);
+            , uIData.NodeInputPinContainerClassName);
 
         VisualElement pinsSpace = new VisualElement();
-        pinsSpace.AddToClassList(_nodePinsSpaceClassName);
+        pinsSpace.AddToClassList(uIData.NodePinsSpaceClassName);
 
         VisualElement outputPinsContainer = RenderPinsContainer(
               nodeConfig.OutputPins
             , PinDirection.Output
-            , _nodeOutputPinContainerClassName);
+            , uIData.NodeOutputPinContainerClassName);
 
         nodePinsZone.Add(inputPinsContainer);
         nodePinsZone.Add(pinsSpace);
@@ -420,8 +343,8 @@ public class GreenprintsUIController : MonoBehaviour
         void ChangeSize(GeometryChangedEvent evt)
         {
             Vector2 deltaSize = new Vector2(
-                  nodeContainer.worldBound.width - MathF.Round(nodeContainer.worldBound.width / _gridSize.x) * _gridSize.x
-                , nodeContainer.worldBound.height - MathF.Round(nodeContainer.worldBound.height / _gridSize.y) * _gridSize.y);
+                  nodeContainer.worldBound.width - MathF.Round(nodeContainer.worldBound.width / _nodeGridSize.x) * _nodeGridSize.x
+                , nodeContainer.worldBound.height - MathF.Round(nodeContainer.worldBound.height / _nodeGridSize.y) * _nodeGridSize.y);
 
             pinsSpace.style.width = pinsSpace.worldBound.width - deltaSize.x;
             pinsSpace.style.height = pinsSpace.worldBound.height - deltaSize.y;
@@ -433,14 +356,17 @@ public class GreenprintsUIController : MonoBehaviour
 
         nodeContainer.RegisterCallback<PointerDownEvent>(evt =>
         {
-            _dragNodeTitle = nodeContainer;
+            if (evt.button != _dragMouseIndex) { return; }
 
-            _oldNodePosition = nodeContainer.worldBound.position;
-            _nodeTitleOffset = _dragNodeTitle.worldBound.position - GetMousePosition();
+            _currentDragElement = new DragNode(
+                  this
+                , GetUINodeFromTitle(nodeContainer).Node
+                , nodeConfig
+                , nodeContainer
+                , GetMousePosition() - nodeContainer.worldBound.position
+                , nodeContainer.layout.position);
 
-            PickNode(GetUINodeFromTitle(nodeContainer).Node);
-
-            SetCurrentDragNodeTitle(_dragNodeTitle);
+            SetManagerBtnState(_managerBtnDeleteNodeState);
         });
 
         return nodeContainer;
@@ -450,21 +376,29 @@ public class GreenprintsUIController : MonoBehaviour
     {
         VisualElement nodeContainer = RenderNodeConfig(node.NodeConfig);
 
+        nodeContainer.style.left = node.Position.x;
+        nodeContainer.style.top = node.Position.y;
+
         return nodeContainer;
+    }
+
+    private void RenderGreenprints()
+    {
+        foreach (UINode uINode in _greenprints.UINodes)
+        {
+            VisualElement nodeTitle = RenderNode(uINode.Node);
+
+            uINode.NodeTitle = nodeTitle;
+
+            _nodesLayer.Add(nodeTitle);
+        }
     }
 }
 
-public class UINode
+[System.Serializable]
+public class GreenprintsManagerBtnState
 {
-    private Node _node;
-    private VisualElement _nodeTitle;
+    [SerializeField] private string _btnText;
 
-    public Node Node => _node;
-    public VisualElement NodeTitle => _nodeTitle;
-
-    public UINode(Node node, VisualElement nodeTitle)
-    {
-        _node = node;
-        _nodeTitle = nodeTitle;
-    }
+    public string BtnText => _btnText;
 }

@@ -8,7 +8,10 @@
         </ui:VisualElement>
         <ui:VisualElement name="WorkZone" class="work-zone">
             <ui:ScrollView name="Nodes" mode="VerticalAndHorizontal" class="nodes-container">
-                <ui:VisualElement name="Canvas" class="nodes-canvas" />
+                <ui:VisualElement name="Canvas" class="nodes-canvas">
+                    <ui:VisualElement name="NodesLayer" picking-mode="Ignore" class="canvas-layer" />
+                    <ui:VisualElement name="PinConnectionsLayer" picking-mode="Ignore" class="canvas-layer" />
+                </ui:VisualElement>
             </ui:ScrollView>
             <ui:ScrollView name="Variables" horizontal-scroller-visibility="Hidden" vertical-scroller-visibility="Hidden" class="variables-list">
                 <ui:VisualElement name="Container" class="variables-container" style="flex-grow: 1;" />

@@ -125,24 +125,12 @@ MonoBehaviour:
               m_StringArgument: 
               m_BoolArgument: 0
             m_CallState: 2
-  _workZoneClassName: work-zone
-  _canvasScrollerClassName: nodes-container
-  _canvasClassName: nodes-canvas
-  _nodeManagerBtnClassName: node-manager-btn
-  _availableNodesContainerClassName: add-node-container
-  _availableNodeClassName: add-node-name
-  _dragNodeNameClassName: drag-node-name
-  _nodeContainerClassName: node-container
-  _nodeTitleClassName: node-title
-  _nodePinsZoneClassName: node-pins-zone
-  _nodePinsContainerClassName: node-pins-container
-  _nodePinsSpaceClassName: node-pins-space
-  _nodeInputPinContainerClassName: node-input-pin-continer
-  _nodeOutputPinContainerClassName: node-output-pin-continer
-  _nodePinClassName: node-pin
-  _nodePinNameClassName: node-pin-name
-  _nodeManagerOpenAvailableNodesBtnText: "\u25BAAdd node"
-  _nodeManagerCloseAvailableNodesBtnText: "\u25BCAdd node"
-  _nodeManagerDeleteNodeBtnText: Delete Node
-  _gridSize: {x: 20, y: 20}
+  _managerBtnOpenAvailableNodesState:
+    _btnText: "\u25BAAdd node"
+  _managerBtnCloseAvailableNodesState:
+    _btnText: "\u25BCAdd node"
+  _managerBtnDeleteNodeState:
+    _btnText: Delete Node
+  _nodeGridSize: {x: 20, y: 20}
+  _availableNodeOffset: {x: 40, y: 40}
   _dragMouseIndex: 0
