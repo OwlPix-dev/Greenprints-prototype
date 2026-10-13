@@ -4,7 +4,6 @@ using UnityEngine.UIElements;
 public class DragNode : GreenprintsDragElement
 {
     private Node _node;
-    private NodeConfig _nodeConfig;
 
     private VisualElement _nodeTitle;
     private Label _nodeName;
@@ -23,10 +22,9 @@ public class DragNode : GreenprintsDragElement
         , Vector2 startPosition)
         : base(greenprintsUIController)
     {
-        _node = node;
-        _nodeConfig = nodeConfig;
-
         _nodeTitle = nodeTitle;
+
+        _node = node ?? nodeConfig.GetNode(Vector2.zero, GreenprintsUIController.Greenprints);
 
         _nodeOffset = nodeOffset;
         _startPosition = startPosition;
@@ -34,8 +32,8 @@ public class DragNode : GreenprintsDragElement
         string nodeNameClassName = GreenprintsUIAssetReferences.Instance.GreenprintsUIData.DragNodeNameClassName;
         _nodeName = GreenprintsUIController.Root.Q<Label>(className: nodeNameClassName);
 
-        _nodeName.style.backgroundColor = _nodeConfig.NodeAffiliation.AffiliationColor;
-        _nodeName.text = _nodeConfig.TitleName;
+        _nodeName.style.backgroundColor = _node.NodeConfig.NodeAffiliation.AffiliationColor;
+        _nodeName.text = _node.NodeConfig.TitleName;
 
         SetCurrentDragElement(_nodeTitle ?? _nodeName, true);
 
@@ -49,17 +47,11 @@ public class DragNode : GreenprintsDragElement
 
         if (_currentDragElement == _nodeTitle)
         {
-            position -= _nodeOffset;
-
-            position = GreenprintsUIController.GetCanvasPosition(position, GreenprintsUIController.NodeGridSize);
-            
-            Vector2 maxPosition = new Vector2(
-              GreenprintsUIController.NodesLayer.worldBound.width - _nodeTitle.worldBound.width
-            , GreenprintsUIController.NodesLayer.worldBound.height - _nodeTitle.worldBound.height);
-
-            position = new Vector2(
-              Mathf.Clamp(position.x, 0, maxPosition.x)
-            , Mathf.Clamp(position.y, 0, maxPosition.y));
+            position = GreenprintsUIController.GetDragElementPosition(
+                  _nodeOffset
+                , GreenprintsUIController.NodeGridSize
+                , _nodeTitle
+                , position);
         }
 
         _currentDragElement.style.left = position.x;
@@ -68,13 +60,13 @@ public class DragNode : GreenprintsDragElement
 
     public override void DropDragElement()
     {
+        bool isNodeInList = GreenprintsUIController.GetUINodeFromTitle(_nodeTitle) != null;
+
         if (_currentDragElement == _nodeTitle)
         {
-            if (_node == null)
+            if (!isNodeInList)
             {
-                Node newNode = _nodeConfig.GetNode(_nodeTitle.worldBound.position, GetGreenprints());
-
-                GreenprintsUIController.Greenprints.UINodes.Add(new UINode(newNode, _nodeTitle));
+                GreenprintsUIController.Greenprints.UINodes.Add(new UINode(_node, _nodeTitle));
             }
         }
         else
@@ -83,7 +75,7 @@ public class DragNode : GreenprintsDragElement
 
             if (pickElement == GreenprintsUIController.NodeManagerBtn)
             {
-                if (_node != null)
+                if (isNodeInList)
                 {
                     UINode removeUINode = GreenprintsUIController.GetUINodeFromTitle(_nodeTitle);
 
@@ -96,7 +88,7 @@ public class DragNode : GreenprintsDragElement
             }
             else
             {
-                if (_node != null)
+                if (isNodeInList)
                 {
                     _nodeTitle.style.left = _startPosition.x;
                     _nodeTitle.style.top = _startPosition.y;
@@ -112,11 +104,6 @@ public class DragNode : GreenprintsDragElement
 
         GreenprintsUIController.OnCanvasHover -= PickNodeTitle;
         GreenprintsUIController.OnCanvasLeave -= PickNodeName;
-    }
-
-    private Greenprints GetGreenprints()
-    {
-        return GreenprintsUIController.Greenprints;
     }
 
     private void SetCurrentDragElement(VisualElement dragElement, bool isMoveDragElement = false)
@@ -143,7 +130,7 @@ public class DragNode : GreenprintsDragElement
     {
         if (_nodeTitle == null)
         {
-            _nodeTitle = GreenprintsUIController.RenderNodeConfig(_nodeConfig);
+            _nodeTitle = GreenprintsUIController.RenderNode(_node);
 
             GreenprintsUIController.NodesLayer.Add(_nodeTitle);
         }

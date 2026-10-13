@@ -1,9 +1,9 @@
-using UnityEngine;
+using System;
 
-public class AddNumbersNode : NodeConfig
+public class AddNumbersNode : MathOperationNode
 {
-    public override void Active(Node node)
+    public override float GetMathOperation(float number1, float number2)
     {
-
+        return number1 + number2;
     }
 }

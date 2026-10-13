@@ -1,5 +1,6 @@
-using System.Linq;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -14,10 +15,10 @@ public class GreenprintsUIController : MonoBehaviour
     [SerializeField] private GreenprintsManagerBtnState _managerBtnDeleteNodeState;
 
     [SerializeField] private Vector2Int _nodeGridSize = new Vector2Int(20, 20);
-    [SerializeField] private Vector2Int _pinConnectionPointGridSize = new Vector2Int(5, 5);
+    [SerializeField] private Vector2Int _pinWirePointGridSize = new Vector2Int(5, 5);
 
     [SerializeField] private Vector2 _availableNodeOffset = new Vector2(40f, 40f);
-    [SerializeField] private Vector2 _pinConnectionPointOffset = Vector2.zero;
+    [SerializeField] private Vector2 _pinWirePointOffset = Vector2.zero;
 
     [SerializeField] private int _dragMouseIndex;
 
@@ -27,7 +28,7 @@ public class GreenprintsUIController : MonoBehaviour
     private VisualElement _canvas;
 
     private VisualElement _nodesLayer;
-    private VisualElement _pinConnectionsLayer;
+    private VisualElement _pinWiresLayer;
 
     private Button _nodeManagerBtn;
     private VisualElement _availableNodesContainer;
@@ -36,17 +37,19 @@ public class GreenprintsUIController : MonoBehaviour
 
     private Greenprints _greenprints;
 
-    private PinConnection _pinConnectionDebug;
-
     private bool _isDragging => _currentDragElement != null;
 
     public Vector2Int NodeGridSize => _nodeGridSize;
-    public Vector2Int PinConnectionPointGridSize => _pinConnectionPointGridSize;
+    public Vector2Int PinWirePointGridSize => _pinWirePointGridSize;
+
+    public Vector2 PinWirePointOffset => _pinWirePointOffset;
+
+    public int DragMouseIndex => _dragMouseIndex;
 
     public VisualElement Root => _root;
 
     public VisualElement NodesLayer => _nodesLayer;
-    public VisualElement PinConnectionsLayer => _pinConnectionsLayer;
+    public VisualElement PinWiresLayer => _pinWiresLayer;
 
     public Button NodeManagerBtn => _nodeManagerBtn;
 
@@ -71,27 +74,32 @@ public class GreenprintsUIController : MonoBehaviour
 
             foreach (UINode uINode in _greenprints.UINodes)
             {
-                Debug.Log($"--- node {uINode.Node}, {uINode.NodeTitle.worldBound.size}");
+                Debug.Log($"- node {uINode.Node}, {uINode.Node.NodeConfig.NodeName}");
+
+                foreach (Pin pin in uINode.Node.Pins)
+                {
+                    if (!IsPinInput(pin))
+                    {
+                        Debug.Log("-- output Pin (connections: )");
+
+                        foreach (PinConnection pinConnection in GetPinConnectionsFromPin(pin))
+                        {
+                            Debug.Log($"--- {pinConnection.InputPin}");
+                        }
+                    }
+                }
             }
-
-            _pinConnectionDebug = new PinConnection(
-                  this
-                , Color.white
-                , 4f
-                , new Vector2(100, 100)
-                , new Vector2(250, 200));
-
-            _pinConnectionsLayer.Add(_pinConnectionDebug);
-        }
-
-        if (Input.GetKeyDown(KeyCode.F))
-        {
-            _pinConnectionDebug.AddPoint(1, new Vector2(200, 100));
         }
 
         if (!_isDragging) { return; }
 
         _currentDragElement.MoveDragElement();
+    }
+
+
+    private void LateUpdate()
+    {
+        if (!_isDragging) { return; }
 
         if (Input.GetMouseButtonUp(_dragMouseIndex))
         {
@@ -113,13 +121,13 @@ public class GreenprintsUIController : MonoBehaviour
         {
             _titleBarBtns.DrawButtons(_root);
 
-            GreenprintsClassNamesData uIData = GetUIData();
+            GreenprintsUIData uIData = GetUIData();
 
             _canvasScroller = _root.Q<ScrollView>(className: uIData.CanvasScrollerClassName);
             _canvas = _root.Q<VisualElement>(className: uIData.CanvasClassName);
 
             _nodesLayer = _canvas.Q<VisualElement>(uIData.NodesLayerName);
-            _pinConnectionsLayer = _canvas.Q<VisualElement>(uIData.PinsConnectionsLayerName);
+            _pinWiresLayer = _canvas.Q<VisualElement>(uIData.PinsConnectionsLayerName);
 
             _availableNodesContainer = _root.Q<VisualElement>(className: uIData.AvailableNodesContainerClassName);
 
@@ -180,6 +188,17 @@ public class GreenprintsUIController : MonoBehaviour
 
     public void CloseGreenprints()
     {
+        foreach (UINode uINode in _greenprints.UINodes)
+        {
+            foreach (Pin pin in uINode.Node.Pins)
+            {
+                if (!IsPinInput(pin))
+                {
+                    GetPinConditionalConnectionsFromPin(pin);
+                }
+            }
+        }
+
         SetActive(false, null);
     }
 
@@ -189,7 +208,7 @@ public class GreenprintsUIController : MonoBehaviour
         _uIDocument.enabled = isActive;
     }
 
-    private GreenprintsClassNamesData GetUIData()
+    private GreenprintsUIData GetUIData()
     {
         return GreenprintsUIAssetReferences.Instance.GreenprintsUIData;
     }
@@ -220,25 +239,51 @@ public class GreenprintsUIController : MonoBehaviour
 
     public Vector2 GetCanvasPosition(Vector2 position, Vector2 gridSize)
     {
+        Rect contentViewportRect = _canvasScroller.contentViewport.worldBound;
+
         Vector2 range = new Vector2(
-                  _canvasScroller.contentContainer.layout.width - _canvasScroller.layout.width
-                , _canvasScroller.contentContainer.layout.height - _canvasScroller.layout.height);
+              _canvasScroller.contentContainer.worldBound.width - contentViewportRect.width
+            , _canvasScroller.contentContainer.worldBound.height - contentViewportRect.height);
 
         Vector2 scrollFactor = new Vector2(
               range.x > 0 ? _canvasScroller.scrollOffset.x / range.x : 0f
             , range.y > 0 ? _canvasScroller.scrollOffset.y / range.y : 0f);
 
-        Rect canvasScrollerTransform = _canvasScroller.contentViewport.worldBound;
-
         position += new Vector2(
-              (_greenprints.CanvasSize.x - canvasScrollerTransform.width) * scrollFactor.x - canvasScrollerTransform.x
-            , (_greenprints.CanvasSize.y - canvasScrollerTransform.height) * scrollFactor.y - canvasScrollerTransform.y);
+              (_greenprints.CanvasSize.x - contentViewportRect.width) * scrollFactor.x - contentViewportRect.x
+            , (_greenprints.CanvasSize.y - contentViewportRect.height) * scrollFactor.y - contentViewportRect.y);
 
-        position -= new Vector2(
-              position.x - MathF.Round(position.x / gridSize.x) * gridSize.x
-            , position.y - MathF.Round(position.y / gridSize.y) * gridSize.y);
+        if (gridSize != Vector2.zero)
+        {
+            position -= new Vector2(
+                  position.x - MathF.Round(position.x / gridSize.x) * gridSize.x
+                , position.y - MathF.Round(position.y / gridSize.y) * gridSize.y);
+        }
 
         return position;
+    }
+
+    public Vector2 GetDragElementPosition(
+          Vector2 offset
+        , Vector2 gridSize
+        , VisualElement dragElement
+        , Vector2? position = null)
+    {
+        position ??= GetMousePosition();
+
+        position -= offset;
+
+        position = GetCanvasPosition(position.Value, gridSize);
+
+        Vector2 maxPosition = new Vector2(
+              _canvas.worldBound.width - dragElement.worldBound.width
+            , _canvas.worldBound.height - dragElement.worldBound.height);
+
+        position = new Vector2(
+              Mathf.Clamp(position.Value.x, 0, maxPosition.x)
+            , Mathf.Clamp(position.Value.y, 0, maxPosition.y));
+
+        return position.Value;
     }
 
     public Vector2 GetMousePosition()
@@ -260,53 +305,97 @@ public class GreenprintsUIController : MonoBehaviour
         return _greenprints.UINodes.FirstOrDefault(uINode => title == uINode.NodeTitle);
     }
 
-    public VisualElement RenderNodeConfig(NodeConfig nodeConfig)
+    public PinUIData GetPinUIData(GreenprintsValueType valueType)
     {
-        GreenprintsClassNamesData uIData = GetUIData();
+        GreenprintsValueTypesAssetReferences valueTypesData = GreenprintsValueTypesAssetReferences.Instance;
+        GreenprintsUIData uIData = GetUIData();
 
-        VisualElement RenderPinsContainer(PinConfig[] pinConfigs, PinDirection pinDirection, string pinContainerClassName)
+        if (valueType == valueTypesData.IntValue)
         {
-            VisualElement pinsContainer = new VisualElement();
-            pinsContainer.AddToClassList(uIData.NodePinsContainerClassName);
-
-            foreach (PinConfig pinConfig in pinConfigs)
-            {
-                VisualElement pinContainer = new VisualElement();
-                pinContainer.AddToClassList(pinContainerClassName);
-
-                VisualElement pinIcon = new VisualElement();
-                pinIcon.AddToClassList(uIData.NodePinClassName);
-
-                Sprite icon = null;
-
-                foreach (PinIconsData pinIconsData in _greenprints.PinsIconsData)
-                {
-                    if (pinIconsData.ValueType == pinConfig.ValueType)
-                    {
-                        icon = pinDirection switch
-                        {
-                            PinDirection.Input => pinIconsData.UnconnectInputIcon,
-                            PinDirection.Output => pinIconsData.UnconnectOutputIcon,
-                            _ => null,
-                        };
-                    }
-                }
-
-                pinIcon.style.backgroundImage = new StyleBackground(icon);
-
-                Label pinName = new Label();
-                pinName.AddToClassList(uIData.NodePinNameClassName);
-
-                pinName.text = pinConfig.PinName;
-
-                pinContainer.Add(pinIcon);
-                pinContainer.Add(pinName);
-
-                pinsContainer.Add(pinContainer);
-            }
-
-            return pinsContainer;
+            return uIData.IntPinUIData;
         }
+        else if (valueType == valueTypesData.FloatValue)
+        {
+            return uIData.FloatPinUIData;
+        }
+        else if (valueType == valueTypesData.BoolValue)
+        {
+            return uIData.BoolPinUIData;
+        }
+        else if (valueType == valueTypesData.StringValue)
+        {
+            return uIData.StringPinUIData;
+        }
+        else if (valueType == null)
+        {
+            return uIData.ExecutionPinUIData;
+        }
+
+        return null;
+    }
+
+    public bool IsPinInput(Pin pin)
+    {
+        return pin is DataInputPin || pin is ExecutionInputPin;
+    }
+
+    public List<PinConnection> GetPinConnectionsFromPin(Pin pin)
+    {
+        if (pin is DataOutputPin dataOutputPin)
+        {
+            return dataOutputPin.InputConnections;
+        }
+        else if (pin is ExecutionOutputPin executionOutputPin)
+        {
+            return new List<PinConnection>() { executionOutputPin.InputConnection };
+        }
+
+        return null;
+    }
+
+    public List<PinConnection> GetPinConditionalConnectionsFromPin(Pin pin)
+    {
+        if (pin is DataOutputPin dataOutputPin)
+        {
+            return dataOutputPin.InputConditionalConnections;
+        }
+        else if (pin is ExecutionOutputPin executionOutputPin)
+        {
+            return new List<PinConnection>() { executionOutputPin.InputConditionalConnection };
+        }
+
+        return null;
+    }
+
+    public void AddPinConnectionToPin(Pin pin, PinConnection pinConnection)
+    {
+        if (pin is DataOutputPin dataOutputPin)
+        {
+            dataOutputPin.InputConditionalConnections.Add(pinConnection);
+        }
+        else if (pin is ExecutionOutputPin executionOutputPin)
+        {
+            executionOutputPin.InputConditionalConnection = pinConnection;
+        }
+    }
+
+    public void AddPinConnectionToInputPin(Pin pin, Pin pinConnection)
+    {
+        if (pin is DataInputPin dataInputPin && dataInputPin.OutputConnection == null)
+        {
+            dataInputPin.OutputConnection = (DataOutputPin)pinConnection;
+        }
+        else if (pin is ExecutionInputPin executionInputPin)
+        {
+            executionInputPin.OutputConnections.Add((ExecutionOutputPin)pinConnection);
+        }
+    }
+
+    public VisualElement RenderNode(Node node)
+    {
+        GreenprintsUIData uIData = GetUIData();
+
+        NodeConfig nodeConfig = node.NodeConfig;
 
         VisualElement nodeContainer = new VisualElement();
         nodeContainer.AddToClassList(uIData.NodeContainerClassName);
@@ -320,18 +409,119 @@ public class GreenprintsUIController : MonoBehaviour
         VisualElement nodePinsZone = new VisualElement();
         nodePinsZone.AddToClassList(uIData.NodePinsZoneClassName);
 
-        VisualElement inputPinsContainer = RenderPinsContainer(
-              nodeConfig.InputPins
-            , PinDirection.Input
-            , uIData.NodeInputPinContainerClassName);
+        VisualElement inputPinsContainer = new VisualElement();
+        inputPinsContainer.AddToClassList(uIData.NodePinsContainerClassName);
 
         VisualElement pinsSpace = new VisualElement();
         pinsSpace.AddToClassList(uIData.NodePinsSpaceClassName);
 
-        VisualElement outputPinsContainer = RenderPinsContainer(
-              nodeConfig.OutputPins
-            , PinDirection.Output
-            , uIData.NodeOutputPinContainerClassName);
+        VisualElement outputPinsContainer = new VisualElement();
+        outputPinsContainer.AddToClassList(uIData.NodePinsContainerClassName);
+
+        foreach (Pin pin in node.Pins)
+        {
+            VisualElement pinContainer = new VisualElement();
+            pinContainer.AddToClassList(uIData.NodePinContainerClassName);
+
+            VisualElement pinIcon = new VisualElement();
+            pinIcon.AddToClassList(uIData.NodePinClassName);
+
+            GreenprintsValueType valueType = pin is DataPin dataPin ? dataPin.GreenprintsValueType : null;
+
+            PinUIData pinUIData = GetPinUIData(valueType);
+
+            Sprite icon = (IsPinInput(pin), pin.IsConnected()) switch
+            {
+                (true, false) => pinUIData.UnconnectInputIcon,
+                (true, true) => pinUIData.ConnectInputIcon,
+                (false, false) => pinUIData.UnconnectOutputIcon,
+                (false, true) => pinUIData.ConnectOutputIcon
+            };
+
+            pinIcon.style.backgroundImage = new StyleBackground(icon);
+
+            if (IsPinInput(pin))
+            {
+                pinIcon.RegisterCallback<PointerUpEvent>(evt =>
+                {
+                    if (_currentDragElement is DragPinWirePoint dragPinWirePoint && evt.button == _dragMouseIndex)
+                    {
+                        Pin wireOwner = dragPinWirePoint.PinConnection.WireOwner;
+
+                        if (wireOwner.IsCanConnect(pin))
+                        {
+                            dragPinWirePoint.PinConnection.SetInputPin(pin, pinIcon);
+
+                            AddPinConnectionToInputPin(pin, wireOwner);
+
+                            evt.StopPropagation();
+                        }
+                        else
+                        {
+                            GetPinConditionalConnectionsFromPin(wireOwner).Remove(dragPinWirePoint.PinConnection);
+                            dragPinWirePoint.PinConnection.PinWireElement.RemoveFromHierarchy();
+                        }
+                    }
+                });
+            }
+            else
+            {
+                pinIcon.RegisterCallback<PointerDownEvent>(evt =>
+                {
+                    if (evt.button != _dragMouseIndex) { return; }
+
+                    Color wireColor = pin is DataPin dataPin ? dataPin.GreenprintsValueType.ValueColor : Color.white;
+
+                    Vector2 startPointPosition = GetCanvasPosition(pinIcon.worldBound.center, Vector2.zero);
+
+                    PinConnection newPinConnection = new PinConnection(
+                          pin
+                        , null
+                        , this
+                        , pinIcon
+                        , GetMousePosition());
+
+                    AddPinConnectionToPin(pin, newPinConnection);
+
+                    evt.StopPropagation();
+                });
+            }
+
+            string pinNameText = pin.PinName;
+            VisualElement pinName = null;
+
+            if (pinNameText != "")
+            {
+                pinName = new Label();
+                pinName.AddToClassList(uIData.NodePinNameClassName);
+
+                ((Label)pinName).text = pinNameText;
+            }
+            else
+            {
+                pinName = new VisualElement();
+                pinName.style.flexGrow = 1;
+            }
+
+            void ConfigurePin(VisualElement container, params VisualElement[] pinContents)
+            {
+                pinContainer.Add(pinContents[0]);
+                pinContainer.Add(pinContents[1]);
+
+                container.Add(pinContainer);
+            }
+
+            if (IsPinInput(pin))
+            {
+                ConfigurePin(inputPinsContainer, pinIcon, pinName);
+            }
+            else
+            {
+                ConfigurePin(outputPinsContainer, pinName, pinIcon);
+            }
+
+            pin.PinContainer = pinContainer;
+        }
 
         nodePinsZone.Add(inputPinsContainer);
         nodePinsZone.Add(pinsSpace);
@@ -343,11 +533,11 @@ public class GreenprintsUIController : MonoBehaviour
         void ChangeSize(GeometryChangedEvent evt)
         {
             Vector2 deltaSize = new Vector2(
-                  nodeContainer.worldBound.width - MathF.Round(nodeContainer.worldBound.width / _nodeGridSize.x) * _nodeGridSize.x
-                , nodeContainer.worldBound.height - MathF.Round(nodeContainer.worldBound.height / _nodeGridSize.y) * _nodeGridSize.y);
+                  nodeContainer.worldBound.width - Mathf.CeilToInt(nodeContainer.worldBound.width / _nodeGridSize.x) * _nodeGridSize.x
+                , nodeContainer.worldBound.height - Mathf.CeilToInt(nodeContainer.worldBound.height / _nodeGridSize.y) * _nodeGridSize.y);
 
-            pinsSpace.style.width = pinsSpace.worldBound.width - deltaSize.x;
-            pinsSpace.style.height = pinsSpace.worldBound.height - deltaSize.y;
+            nodeContainer.style.width = nodeContainer.worldBound.width - deltaSize.x;
+            nodeContainer.style.height = nodeContainer.worldBound.height - deltaSize.y;
 
             nodeContainer.UnregisterCallback<GeometryChangedEvent>(ChangeSize);
         }
@@ -369,13 +559,6 @@ public class GreenprintsUIController : MonoBehaviour
             SetManagerBtnState(_managerBtnDeleteNodeState);
         });
 
-        return nodeContainer;
-    }
-
-    private VisualElement RenderNode(Node node)
-    {
-        VisualElement nodeContainer = RenderNodeConfig(node.NodeConfig);
-
         nodeContainer.style.left = node.Position.x;
         nodeContainer.style.top = node.Position.y;
 
@@ -386,11 +569,42 @@ public class GreenprintsUIController : MonoBehaviour
     {
         foreach (UINode uINode in _greenprints.UINodes)
         {
-            VisualElement nodeTitle = RenderNode(uINode.Node);
+            Node node = uINode.Node;
+            VisualElement nodeTitle = RenderNode(node);
 
             uINode.NodeTitle = nodeTitle;
 
             _nodesLayer.Add(nodeTitle);
+        }
+
+        GreenprintsUIData uIData = GetUIData();
+
+        VisualElement GetPinIcon(UINode uINode, Pin pin)
+        {
+            return uINode.NodeTitle.Query<VisualElement>(
+                className: uIData.NodePinContainerClassName).ToList().FirstOrDefault(
+                pinContainer => pinContainer == pin.PinContainer).Q<VisualElement>(className: uIData.NodePinClassName);
+        }
+
+        foreach (UINode uINode in _greenprints.UINodes)
+        {
+            foreach (Pin pin in uINode.Node.Pins)
+            {
+                if (!IsPinInput(pin))
+                {
+                    foreach (PinConnection pinConnection in GetPinConnectionsFromPin(pin))
+                    {
+                        VisualElement outputPinIcon = GetPinIcon(uINode, pin);
+
+                        UINode inputPinUINode = _greenprints.UINodes.FirstOrDefault(
+                            uINode => uINode.Node == pinConnection.InputPin.Owner);
+
+                        VisualElement inputPinIcon = GetPinIcon(inputPinUINode, pinConnection.InputPin);
+
+                        pinConnection.RerenderPinWire(outputPinIcon, inputPinIcon);
+                    }
+                }
+            }
         }
     }
 }

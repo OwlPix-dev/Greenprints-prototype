@@ -4,11 +4,11 @@ using UnityEngine.UIElements;
 
 public class GreenprintsUIAssetReferences : MonoBehaviour
 {
-    [SerializeField] private GreenprintsClassNamesData _greenprintsUIData;
+    [SerializeField] private GreenprintsUIData _greenprintsUIData;
 
     private static GreenprintsUIAssetReferences _instance;
 
-    public GreenprintsClassNamesData GreenprintsUIData => _greenprintsUIData;
+    public GreenprintsUIData GreenprintsUIData => _greenprintsUIData;
 
     public static GreenprintsUIAssetReferences Instance
     {

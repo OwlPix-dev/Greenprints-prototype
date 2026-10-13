@@ -15,3 +15,8 @@ MonoBehaviour:
   _valueTitleName: Float
   _valueName: System.Single
   _valueColor: {r: 0, g: 1, b: 0, a: 1}
+  _pinIcons:
+    _connectInputIcon: {fileID: 311611330, guid: d0c36480e44cf01418338f9db7381b3e, type: 3}
+    _connectOutputIcon: {fileID: -860922363, guid: d0c36480e44cf01418338f9db7381b3e, type: 3}
+    _unconnectInputIcon: {fileID: -426503613, guid: d0c36480e44cf01418338f9db7381b3e, type: 3}
+    _unconnectOutputIcon: {fileID: -745928711, guid: d0c36480e44cf01418338f9db7381b3e, type: 3}

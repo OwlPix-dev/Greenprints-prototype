@@ -62,22 +62,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _greenprints: {fileID: 6222861601528658633}
   _nodeAffiliation: {fileID: 7147377018573624655}
-  _nodeName: Add numbers
-  _titleName: Add numbers
-  _inputPins:
-  - _pinName: Number 1
-    _valueType: {fileID: 11400000, guid: 58e6aa7b49f3835429d8de9d6e708c5f, type: 2}
-  - _pinName: Number 2
-    _valueType: {fileID: 11400000, guid: 58e6aa7b49f3835429d8de9d6e708c5f, type: 2}
-  - _pinName: Number 3
-    _valueType: {fileID: 11400000, guid: 58e6aa7b49f3835429d8de9d6e708c5f, type: 2}
-  - _pinName: Number 4
-    _valueType: {fileID: 11400000, guid: 58e6aa7b49f3835429d8de9d6e708c5f, type: 2}
-  - _pinName: Number 5
-    _valueType: {fileID: 11400000, guid: 58e6aa7b49f3835429d8de9d6e708c5f, type: 2}
-  _outputPins:
-  - _pinName: Result
-    _valueType: {fileID: 11400000, guid: 58e6aa7b49f3835429d8de9d6e708c5f, type: 2}
+  _nodeName: AddNumbers()
+  _titleName: AddNumbers()
   _delayNextNode: 0.02
 --- !u!114 &6786051443897591346
 MonoBehaviour:
@@ -93,16 +79,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _greenprints: {fileID: 6222861601528658633}
   _nodeAffiliation: {fileID: 7147377018573624655}
-  _nodeName: Substract numbers
-  _titleName: Substract numbers
-  _inputPins:
-  - _pinName: Number 1
-    _valueType: {fileID: 11400000, guid: 58e6aa7b49f3835429d8de9d6e708c5f, type: 2}
-  - _pinName: Number 2
-    _valueType: {fileID: 11400000, guid: 58e6aa7b49f3835429d8de9d6e708c5f, type: 2}
-  _outputPins:
-  - _pinName: Result
-    _valueType: {fileID: 11400000, guid: 58e6aa7b49f3835429d8de9d6e708c5f, type: 2}
+  _nodeName: SubstractNumbers()
+  _titleName: SubstractNumbers()
   _delayNextNode: 0.02
 --- !u!1 &2777965238096209633
 GameObject:
@@ -115,6 +93,8 @@ GameObject:
   - component: {fileID: 4727585683697421697}
   - component: {fileID: 6199417111467774578}
   - component: {fileID: 392805097165419187}
+  - component: {fileID: 4780320269849356713}
+  - component: {fileID: 8705189258082246862}
   m_Layer: 0
   m_Name: Debug nodes
   m_TagString: Untagged
@@ -165,12 +145,42 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _greenprints: {fileID: 6222861601528658633}
   _nodeAffiliation: {fileID: 6199417111467774578}
-  _nodeName: On active
-  _titleName: On active
-  _inputPins: []
-  _outputPins:
-  - _pinName: 
-    _valueType: {fileID: 0}
+  _nodeName: OnActive<>
+  _titleName: OnActive<>
+  _delayNextNode: 0.02
+--- !u!114 &4780320269849356713
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2777965238096209633}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4385fbb59972e62419857fcc406643f9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _greenprints: {fileID: 6222861601528658633}
+  _nodeAffiliation: {fileID: 6199417111467774578}
+  _nodeName: Debug.Log()
+  _titleName: Debug.Log()
+  _delayNextNode: 0.02
+--- !u!114 &8705189258082246862
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2777965238096209633}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 00374e9de584e7a4e89a109681d99f50, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _greenprints: {fileID: 6222861601528658633}
+  _nodeAffiliation: {fileID: 6199417111467774578}
+  _nodeName: Get1()
+  _titleName: Get1()
   _delayNextNode: 0.02
 --- !u!1 &5144288929715835918
 GameObject:
@@ -221,32 +231,34 @@ MonoBehaviour:
   - {fileID: 7701296977427289045}
   - {fileID: 6786051443897591346}
   - {fileID: 392805097165419187}
+  - {fileID: 4780320269849356713}
+  - {fileID: 8705189258082246862}
   _pinsIconsData:
-  - _valueType: {fileID: 0}
-    _connectInputIcon: {fileID: 2100510328, guid: d0c36480e44cf01418338f9db7381b3e, type: 3}
+  - _connectInputIcon: {fileID: 2100510328, guid: d0c36480e44cf01418338f9db7381b3e, type: 3}
     _connectOutputIcon: {fileID: -1862011098, guid: d0c36480e44cf01418338f9db7381b3e, type: 3}
     _unconnectInputIcon: {fileID: 535575325, guid: d0c36480e44cf01418338f9db7381b3e, type: 3}
     _unconnectOutputIcon: {fileID: 1412472606, guid: d0c36480e44cf01418338f9db7381b3e, type: 3}
-  - _valueType: {fileID: 11400000, guid: 506107cdd1aef1c4fa047a55601ccbae, type: 2}
-    _connectInputIcon: {fileID: 923924877, guid: d0c36480e44cf01418338f9db7381b3e, type: 3}
+    _pinWireColor: {r: 0, g: 0, b: 0, a: 0}
+  - _connectInputIcon: {fileID: 923924877, guid: d0c36480e44cf01418338f9db7381b3e, type: 3}
     _connectOutputIcon: {fileID: -642992111, guid: d0c36480e44cf01418338f9db7381b3e, type: 3}
     _unconnectInputIcon: {fileID: 391731569, guid: d0c36480e44cf01418338f9db7381b3e, type: 3}
     _unconnectOutputIcon: {fileID: 1249491151, guid: d0c36480e44cf01418338f9db7381b3e, type: 3}
-  - _valueType: {fileID: 11400000, guid: 58e6aa7b49f3835429d8de9d6e708c5f, type: 2}
-    _connectInputIcon: {fileID: 311611330, guid: d0c36480e44cf01418338f9db7381b3e, type: 3}
+    _pinWireColor: {r: 0, g: 0, b: 0, a: 0}
+  - _connectInputIcon: {fileID: 311611330, guid: d0c36480e44cf01418338f9db7381b3e, type: 3}
     _connectOutputIcon: {fileID: -860922363, guid: d0c36480e44cf01418338f9db7381b3e, type: 3}
     _unconnectInputIcon: {fileID: -426503613, guid: d0c36480e44cf01418338f9db7381b3e, type: 3}
     _unconnectOutputIcon: {fileID: -745928711, guid: d0c36480e44cf01418338f9db7381b3e, type: 3}
-  - _valueType: {fileID: 11400000, guid: d7caaaf6f8044b9409f84b494fd1200e, type: 2}
-    _connectInputIcon: {fileID: 590932104, guid: d0c36480e44cf01418338f9db7381b3e, type: 3}
+    _pinWireColor: {r: 0, g: 0, b: 0, a: 0}
+  - _connectInputIcon: {fileID: 590932104, guid: d0c36480e44cf01418338f9db7381b3e, type: 3}
     _connectOutputIcon: {fileID: 629625693, guid: d0c36480e44cf01418338f9db7381b3e, type: 3}
     _unconnectInputIcon: {fileID: -920614261, guid: d0c36480e44cf01418338f9db7381b3e, type: 3}
     _unconnectOutputIcon: {fileID: 26860603, guid: d0c36480e44cf01418338f9db7381b3e, type: 3}
-  - _valueType: {fileID: 11400000, guid: 6136c98540cd39345a07b2961ea68dcc, type: 2}
-    _connectInputIcon: {fileID: -164527829, guid: d0c36480e44cf01418338f9db7381b3e, type: 3}
+    _pinWireColor: {r: 0, g: 0, b: 0, a: 0}
+  - _connectInputIcon: {fileID: -164527829, guid: d0c36480e44cf01418338f9db7381b3e, type: 3}
     _connectOutputIcon: {fileID: -517754685, guid: d0c36480e44cf01418338f9db7381b3e, type: 3}
     _unconnectInputIcon: {fileID: 840406666, guid: d0c36480e44cf01418338f9db7381b3e, type: 3}
     _unconnectOutputIcon: {fileID: -739336958, guid: d0c36480e44cf01418338f9db7381b3e, type: 3}
+    _pinWireColor: {r: 0, g: 0, b: 0, a: 0}
   _canvasSize: {x: 2000, y: 1600}
 --- !u!1 &5834464665482786091
 GameObject:

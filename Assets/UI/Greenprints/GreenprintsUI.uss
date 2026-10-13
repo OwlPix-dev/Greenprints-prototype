@@ -168,7 +168,7 @@ VisualElement {
 
 .node-container {
     position: absolute;
-    min-width: 180px;
+    min-width: 140px;
     min-height: 140px;
 }
 
@@ -201,20 +201,14 @@ VisualElement {
     width: 40px;
 }
 
-.node-input-pin-continer {
+.node-pin-continer {
     flex-direction: row;
     margin-top: 5px;
     margin-left: 5px;
     margin-bottom: 5px;
     margin-right: 5px;
-}
-
-.node-output-pin-continer {
-    flex-direction: row-reverse;
-    margin-top: 5px;
-    margin-left: 5px;
-    margin-bottom: 5px;
-    margin-right: 5px;
+    justify-content: center;
+    align-items: center;
 }
 
 .node-pin {
@@ -233,6 +227,7 @@ VisualElement {
     padding-left: 0;
     color: rgb(200, 200, 200);
     font-size: 18px;
+    -unity-background-image-tint-color: rgba(255, 255, 255, 0.51);
 }
 
 .pin-connection-point {

@@ -1,4 +1,4 @@
-using Unity.VisualScripting;
+using System.Collections.Generic;
 using UnityEngine;
 
 public class ActiveNode : NodeConfig
@@ -19,8 +19,14 @@ public class ActiveNode : NodeConfig
 
     public override void Active(Node node)
     {
-        Debug.Log("Active");
+        ActiveExecutionOutputPin(node, 0);
+    }
 
-        node.Pins[0].SendSignal(null);
+    public override List<Pin> GetPins(Node owner)
+    {
+        return new List<Pin>()
+        {
+            new ExecutionOutputPin("", owner, Greenprints)
+        };
     }
 }

@@ -26,8 +26,38 @@ MonoBehaviour:
   _nodePinsZoneClassName: node-pins-zone
   _nodePinsContainerClassName: node-pins-container
   _nodePinsSpaceClassName: node-pins-space
-  _nodeInputPinContainerClassName: node-input-pin-continer
-  _nodeOutputPinContainerClassName: node-output-pin-continer
+  _nodePinContainerClassName: node-pin-continer
   _nodePinClassName: node-pin
   _nodePinNameClassName: node-pin-name
-  _pinConnectionPointClassName: pin-connection-point
+  _intPinUIData:
+    _connectInputIcon: {fileID: 590932104, guid: d0c36480e44cf01418338f9db7381b3e, type: 3}
+    _connectOutputIcon: {fileID: 629625693, guid: d0c36480e44cf01418338f9db7381b3e, type: 3}
+    _unconnectInputIcon: {fileID: 26860603, guid: d0c36480e44cf01418338f9db7381b3e, type: 3}
+    _unconnectOutputIcon: {fileID: -920614261, guid: d0c36480e44cf01418338f9db7381b3e, type: 3}
+    _pinWireColor: {r: 0, g: 0, b: 0.87058824, a: 1}
+  _floatPinUIData:
+    _connectInputIcon: {fileID: 311611330, guid: d0c36480e44cf01418338f9db7381b3e, type: 3}
+    _connectOutputIcon: {fileID: -860922363, guid: d0c36480e44cf01418338f9db7381b3e, type: 3}
+    _unconnectInputIcon: {fileID: -426503613, guid: d0c36480e44cf01418338f9db7381b3e, type: 3}
+    _unconnectOutputIcon: {fileID: -745928711, guid: d0c36480e44cf01418338f9db7381b3e, type: 3}
+    _pinWireColor: {r: 0, g: 0.87058824, b: 0, a: 1}
+  _boolPinUIData:
+    _connectInputIcon: {fileID: 923924877, guid: d0c36480e44cf01418338f9db7381b3e, type: 3}
+    _connectOutputIcon: {fileID: -642992111, guid: d0c36480e44cf01418338f9db7381b3e, type: 3}
+    _unconnectInputIcon: {fileID: 391731569, guid: d0c36480e44cf01418338f9db7381b3e, type: 3}
+    _unconnectOutputIcon: {fileID: 1249491151, guid: d0c36480e44cf01418338f9db7381b3e, type: 3}
+    _pinWireColor: {r: 0.87058824, g: 0, b: 0, a: 1}
+  _stringPinUIData:
+    _connectInputIcon: {fileID: -164527829, guid: d0c36480e44cf01418338f9db7381b3e, type: 3}
+    _connectOutputIcon: {fileID: -517754685, guid: d0c36480e44cf01418338f9db7381b3e, type: 3}
+    _unconnectInputIcon: {fileID: 840406666, guid: d0c36480e44cf01418338f9db7381b3e, type: 3}
+    _unconnectOutputIcon: {fileID: -739336958, guid: d0c36480e44cf01418338f9db7381b3e, type: 3}
+    _pinWireColor: {r: 0.87058824, g: 0.87058824, b: 0, a: 1}
+  _executionPinUIData:
+    _connectInputIcon: {fileID: -1862011098, guid: d0c36480e44cf01418338f9db7381b3e, type: 3}
+    _connectOutputIcon: {fileID: 2100510328, guid: d0c36480e44cf01418338f9db7381b3e, type: 3}
+    _unconnectInputIcon: {fileID: 535575325, guid: d0c36480e44cf01418338f9db7381b3e, type: 3}
+    _unconnectOutputIcon: {fileID: 1412472606, guid: d0c36480e44cf01418338f9db7381b3e, type: 3}
+    _pinWireColor: {r: 1, g: 1, b: 1, a: 1}
+  _pinWirePointClassName: pin-connection-point
+  _pinWireWidth: 4

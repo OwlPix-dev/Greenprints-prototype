@@ -2,13 +2,11 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-public enum PinDirection { Input, Output }
-
 public class Greenprints : MonoBehaviour
 {
     [SerializeField] private NodeConfig[] _availableNodes;
 
-    [SerializeField] private PinIconsData[] _pinsIconsData;
+    [SerializeField] private PinUIData[] _pinsIconsData;
 
     [SerializeField] private Vector2 _canvasSize = new Vector2(2000, 1600);
 
@@ -20,7 +18,7 @@ public class Greenprints : MonoBehaviour
 
     public NodeConfig[] AvailableNodes => _availableNodes;
 
-    public PinIconsData[] PinsIconsData => _pinsIconsData;
+    public PinUIData[] PinsIconsData => _pinsIconsData;
 
     public Vector2 CanvasSize => _canvasSize;
 
@@ -38,6 +36,7 @@ public class Greenprints : MonoBehaviour
         {
             Node workNode = _nodesInWork[0];
             NodeConfig nodeConfig = workNode.NodeConfig;
+            Debug.Log($"Work node {nodeConfig.NodeName}");
 
             nodeConfig.Active(workNode);
             _timer = nodeConfig.DelayNextNode;

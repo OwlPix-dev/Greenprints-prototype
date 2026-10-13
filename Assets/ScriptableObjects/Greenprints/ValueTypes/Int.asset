@@ -15,3 +15,8 @@ MonoBehaviour:
   _valueTitleName: Int
   _valueName: System.Int32
   _valueColor: {r: 0, g: 0, b: 1, a: 1}
+  _pinIcons:
+    _connectInputIcon: {fileID: 590932104, guid: d0c36480e44cf01418338f9db7381b3e, type: 3}
+    _connectOutputIcon: {fileID: 629625693, guid: d0c36480e44cf01418338f9db7381b3e, type: 3}
+    _unconnectInputIcon: {fileID: -920614261, guid: d0c36480e44cf01418338f9db7381b3e, type: 3}
+    _unconnectOutputIcon: {fileID: 26860603, guid: d0c36480e44cf01418338f9db7381b3e, type: 3}

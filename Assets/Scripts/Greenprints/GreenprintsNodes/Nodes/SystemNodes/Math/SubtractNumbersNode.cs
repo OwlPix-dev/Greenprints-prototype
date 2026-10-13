@@ -1,9 +1,9 @@
 using UnityEngine;
 
-public class SubtractNumbersNode : NodeConfig
+public class SubtractNumbersNode : MathOperationNode
 {
-    public override void Active(Node node)
+    public override float GetMathOperation(float number1, float number2)
     {
-
+        return number1 - number2;
     }
 }
