@@ -54,8 +54,8 @@ MonoBehaviour:
     _unconnectOutputIcon: {fileID: -739336958, guid: d0c36480e44cf01418338f9db7381b3e, type: 3}
     _pinWireColor: {r: 0.87058824, g: 0.87058824, b: 0, a: 1}
   _executionPinUIData:
-    _connectInputIcon: {fileID: -1862011098, guid: d0c36480e44cf01418338f9db7381b3e, type: 3}
-    _connectOutputIcon: {fileID: 2100510328, guid: d0c36480e44cf01418338f9db7381b3e, type: 3}
+    _connectInputIcon: {fileID: 2100510328, guid: d0c36480e44cf01418338f9db7381b3e, type: 3}
+    _connectOutputIcon: {fileID: -1862011098, guid: d0c36480e44cf01418338f9db7381b3e, type: 3}
     _unconnectInputIcon: {fileID: 535575325, guid: d0c36480e44cf01418338f9db7381b3e, type: 3}
     _unconnectOutputIcon: {fileID: 1412472606, guid: d0c36480e44cf01418338f9db7381b3e, type: 3}
     _pinWireColor: {r: 1, g: 1, b: 1, a: 1}

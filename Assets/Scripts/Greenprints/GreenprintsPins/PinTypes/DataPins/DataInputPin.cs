@@ -1,5 +1,5 @@
-using System;
-using System.Collections.Generic;
+using System.Linq;
+using UnityEngine;
 
 public class DataInputPin : DataPin
 {
@@ -17,7 +17,9 @@ public class DataInputPin : DataPin
     public override bool IsCanConnect(Pin connectPin)
     {
         if (base.IsCanConnect(connectPin) &&
-            connectPin is DataOutputPin &&
+            connectPin is DataOutputPin dataOutputPin &&
+            (dataOutputPin.GreenprintsValueType == GreenprintsValueType ||
+            GreenprintsValueType.DerivedValueTypes.FirstOrDefault(valueType => valueType == dataOutputPin.GreenprintsValueType) != null) &&
             _outputConnection == null)
         {
             return true;

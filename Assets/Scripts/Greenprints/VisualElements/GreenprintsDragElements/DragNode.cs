@@ -77,6 +77,8 @@ public class DragNode : GreenprintsDragElement
             {
                 if (isNodeInList)
                 {
+                    GreenprintsUIController.Greenprints.RemoveNodePinsConnections(_node, GreenprintsUIController);
+
                     UINode removeUINode = GreenprintsUIController.GetUINodeFromTitle(_nodeTitle);
 
                     GreenprintsUIController.Greenprints.UINodes.Remove(removeUINode);

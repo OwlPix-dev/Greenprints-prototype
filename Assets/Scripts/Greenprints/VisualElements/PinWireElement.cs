@@ -23,40 +23,6 @@ public class PinWireElement : VisualElement
         generateVisualContent += OnGenerateVisualContent;
     }
 
-    //public VisualElement AddPoint(int pointIndex, Vector2 pointPosition, Visibility pointVisibility = Visibility.Visible)
-    //{
-    //    VisualElement pointTitle = new VisualElement();
-    //    pointTitle.AddToClassList(GreenprintsUIAssetReferences.Instance.GreenprintsUIData.PinConnectionPointClassName);
-
-    //    pointTitle.style.left = pointPosition.x;
-    //    pointTitle.style.top = pointPosition.y;
-
-    //    pointTitle.style.translate = new Translate(
-    //        new Length(-50, LengthUnit.Percent),
-    //        new Length(-50, LengthUnit.Percent)
-    //    );
-
-    //    pointTitle.style.visibility = pointVisibility;
-
-    //    pointTitle.RegisterCallback<PointerDownEvent>(evt =>
-    //    {
-    //        if (evt.button != _greenprintsUIController.DragMouseIndex) { return; }
-
-    //        _greenprintsUIController.CurrentDragElement = new DragPinWirePoint(
-    //              _greenprintsUIController
-    //            , pointTitle);
-    //    });
-
-    //    pointTitle.RegisterCallback<GeometryChangedEvent>(evt => MarkDirtyRepaint());
-
-    //    _pinConnection.Points.Insert(pointIndex, pointTitle);
-    //    Insert(pointIndex, pointTitle);
-
-    //    MarkDirtyRepaint();
-
-    //    return pointTitle;
-    //}
-
     private void OnGenerateVisualContent(MeshGenerationContext mgc)
     {
         if (_pinConnection.Points.Count < 2) { return; }
@@ -101,5 +67,6 @@ public class PinWireElement : VisualElement
         PinUIData pinUIData = _greenprintsUIController.GetPinUIData(valueType);
 
         _wireColor = pinUIData.PinWireColor;
+        MarkDirtyRepaint();
     }
 }

@@ -36,12 +36,6 @@ public class DragPinWirePoint : GreenprintsDragElement
 
     public override void DropDragElement()
     {
-        //if (_pointTitle != _pinConnection.Points[_pinConnection.Points.Count - 1].PointTitle) { return; }
-
-        //VisualElement pickElement = GreenprintsUIController.GetPickElement();
-
-        //if (pickElement == )
-
         _pointTitle.pickingMode = PickingMode.Position;
     }
 }

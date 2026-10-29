@@ -135,10 +135,5 @@ MonoBehaviour:
   _pinWirePointGridSize: {x: 5, y: 5}
   _availableNodeOffset: {x: 40, y: 40}
   _pinWirePointOffset: {x: 0, y: 0}
-  _pinWireWidth: 4
   _dragMouseIndex: 0
-  _executionPinIcons:
-    _connectInputIcon: {fileID: 2100510328, guid: d0c36480e44cf01418338f9db7381b3e, type: 3}
-    _connectOutputIcon: {fileID: -1862011098, guid: d0c36480e44cf01418338f9db7381b3e, type: 3}
-    _unconnectInputIcon: {fileID: 535575325, guid: d0c36480e44cf01418338f9db7381b3e, type: 3}
-    _unconnectOutputIcon: {fileID: 1412472606, guid: d0c36480e44cf01418338f9db7381b3e, type: 3}
+  _removePinWireMouseIndex: 1

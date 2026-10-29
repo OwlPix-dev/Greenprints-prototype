@@ -15,8 +15,7 @@ MonoBehaviour:
   _valueTitleName: String
   _valueName: System.String
   _valueColor: {r: 1, g: 1, b: 0, a: 1}
-  _pinIcons:
-    _connectInputIcon: {fileID: -164527829, guid: d0c36480e44cf01418338f9db7381b3e, type: 3}
-    _connectOutputIcon: {fileID: -517754685, guid: d0c36480e44cf01418338f9db7381b3e, type: 3}
-    _unconnectInputIcon: {fileID: 840406666, guid: d0c36480e44cf01418338f9db7381b3e, type: 3}
-    _unconnectOutputIcon: {fileID: -739336958, guid: d0c36480e44cf01418338f9db7381b3e, type: 3}
+  _derivedValueTypes:
+  - {fileID: 11400000, guid: 506107cdd1aef1c4fa047a55601ccbae, type: 2}
+  - {fileID: 11400000, guid: d7caaaf6f8044b9409f84b494fd1200e, type: 2}
+  - {fileID: 11400000, guid: 58e6aa7b49f3835429d8de9d6e708c5f, type: 2}

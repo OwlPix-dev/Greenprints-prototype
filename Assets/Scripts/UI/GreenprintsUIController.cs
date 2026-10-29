@@ -21,6 +21,7 @@ public class GreenprintsUIController : MonoBehaviour
     [SerializeField] private Vector2 _pinWirePointOffset = Vector2.zero;
 
     [SerializeField] private int _dragMouseIndex;
+    [SerializeField] private int _removePinWireMouseIndex = 1;
 
     private VisualElement _root;
 
@@ -78,11 +79,11 @@ public class GreenprintsUIController : MonoBehaviour
 
                 foreach (Pin pin in uINode.Node.Pins)
                 {
-                    if (!IsPinInput(pin))
+                    if (!_greenprints.IsPinInput(pin))
                     {
                         Debug.Log("-- output Pin (connections: )");
 
-                        foreach (PinConnection pinConnection in GetPinConnectionsFromPin(pin))
+                        foreach (PinConnection pinConnection in _greenprints.GetPinConditionalConnectionsFromOutputPin(pin))
                         {
                             Debug.Log($"--- {pinConnection.InputPin}");
                         }
@@ -192,9 +193,18 @@ public class GreenprintsUIController : MonoBehaviour
         {
             foreach (Pin pin in uINode.Node.Pins)
             {
-                if (!IsPinInput(pin))
+                if (!_greenprints.IsPinInput(pin))
                 {
-                    GetPinConditionalConnectionsFromPin(pin);
+                    List<PinConnection> pinConnections = _greenprints.GetPinConditionalConnectionsFromOutputPin(pin);
+
+                    for (int pinConnectionIndex = 0; pinConnectionIndex < pinConnections.Count; pinConnectionIndex++)
+                    {
+                        if (pinConnections[pinConnectionIndex].InputPin == null)
+                        {
+                            _greenprints.RemovePinWire(pin, pinConnectionIndex, this);
+                        }
+                        
+                    }
                 }
             }
         }
@@ -305,6 +315,13 @@ public class GreenprintsUIController : MonoBehaviour
         return _greenprints.UINodes.FirstOrDefault(uINode => title == uINode.NodeTitle);
     }
 
+    public VisualElement GetPinIconFromPin(Pin pin, GreenprintsUIData uIData = null)
+    {
+        uIData ??= GetUIData();
+
+        return pin.PinContainer.Q<VisualElement>(className: uIData.NodePinClassName);
+    }
+
     public PinUIData GetPinUIData(GreenprintsValueType valueType)
     {
         GreenprintsValueTypesAssetReferences valueTypesData = GreenprintsValueTypesAssetReferences.Instance;
@@ -334,61 +351,23 @@ public class GreenprintsUIController : MonoBehaviour
         return null;
     }
 
-    public bool IsPinInput(Pin pin)
+    public void SetPinIcon(Pin pin, VisualElement pinIcon = null)
     {
-        return pin is DataInputPin || pin is ExecutionInputPin;
-    }
+        GreenprintsValueType valueType = pin is DataPin dataPin ? dataPin.GreenprintsValueType : null;
 
-    public List<PinConnection> GetPinConnectionsFromPin(Pin pin)
-    {
-        if (pin is DataOutputPin dataOutputPin)
-        {
-            return dataOutputPin.InputConnections;
-        }
-        else if (pin is ExecutionOutputPin executionOutputPin)
-        {
-            return new List<PinConnection>() { executionOutputPin.InputConnection };
-        }
+        PinUIData pinUIData = GetPinUIData(valueType);
 
-        return null;
-    }
+        Sprite icon = (_greenprints.IsPinInput(pin), pin.IsConnected()) switch
+        {
+            (true, false) => pinUIData.UnconnectInputIcon,
+            (true, true) => pinUIData.ConnectInputIcon,
+            (false, false) => pinUIData.UnconnectOutputIcon,
+            (false, true) => pinUIData.ConnectOutputIcon
+        };
 
-    public List<PinConnection> GetPinConditionalConnectionsFromPin(Pin pin)
-    {
-        if (pin is DataOutputPin dataOutputPin)
-        {
-            return dataOutputPin.InputConditionalConnections;
-        }
-        else if (pin is ExecutionOutputPin executionOutputPin)
-        {
-            return new List<PinConnection>() { executionOutputPin.InputConditionalConnection };
-        }
+        pinIcon ??= GetPinIconFromPin(pin);
 
-        return null;
-    }
-
-    public void AddPinConnectionToPin(Pin pin, PinConnection pinConnection)
-    {
-        if (pin is DataOutputPin dataOutputPin)
-        {
-            dataOutputPin.InputConditionalConnections.Add(pinConnection);
-        }
-        else if (pin is ExecutionOutputPin executionOutputPin)
-        {
-            executionOutputPin.InputConditionalConnection = pinConnection;
-        }
-    }
-
-    public void AddPinConnectionToInputPin(Pin pin, Pin pinConnection)
-    {
-        if (pin is DataInputPin dataInputPin && dataInputPin.OutputConnection == null)
-        {
-            dataInputPin.OutputConnection = (DataOutputPin)pinConnection;
-        }
-        else if (pin is ExecutionInputPin executionInputPin)
-        {
-            executionInputPin.OutputConnections.Add((ExecutionOutputPin)pinConnection);
-        }
+        pinIcon.style.backgroundImage = new StyleBackground(icon);
     }
 
     public VisualElement RenderNode(Node node)
@@ -426,21 +405,9 @@ public class GreenprintsUIController : MonoBehaviour
             VisualElement pinIcon = new VisualElement();
             pinIcon.AddToClassList(uIData.NodePinClassName);
 
-            GreenprintsValueType valueType = pin is DataPin dataPin ? dataPin.GreenprintsValueType : null;
+            SetPinIcon(pin, pinIcon);
 
-            PinUIData pinUIData = GetPinUIData(valueType);
-
-            Sprite icon = (IsPinInput(pin), pin.IsConnected()) switch
-            {
-                (true, false) => pinUIData.UnconnectInputIcon,
-                (true, true) => pinUIData.ConnectInputIcon,
-                (false, false) => pinUIData.UnconnectOutputIcon,
-                (false, true) => pinUIData.ConnectOutputIcon
-            };
-
-            pinIcon.style.backgroundImage = new StyleBackground(icon);
-
-            if (IsPinInput(pin))
+            if (_greenprints.IsPinInput(pin))
             {
                 pinIcon.RegisterCallback<PointerUpEvent>(evt =>
                 {
@@ -448,17 +415,21 @@ public class GreenprintsUIController : MonoBehaviour
                     {
                         Pin wireOwner = dragPinWirePoint.PinConnection.WireOwner;
 
-                        if (wireOwner.IsCanConnect(pin))
+                        if (wireOwner.IsCanConnect(pin) && pin.IsCanConnect(wireOwner))
                         {
                             dragPinWirePoint.PinConnection.SetInputPin(pin, pinIcon);
 
-                            AddPinConnectionToInputPin(pin, wireOwner);
+                            _greenprints.AddPinConnectionToInputPin(pin, wireOwner, this);
 
                             evt.StopPropagation();
                         }
                         else
                         {
-                            GetPinConditionalConnectionsFromPin(wireOwner).Remove(dragPinWirePoint.PinConnection);
+                            // _greenprints.GetPinConditionalConnectionsFromOutputPin(wireOwner).Remove(dragPinWirePoint.PinConnection);
+                            PinConnection[] pinConnections = _greenprints.GetPinConditionalConnectionsFromOutputPin(wireOwner).ToArray();
+                            int pinConnectionIndex = Array.IndexOf(pinConnections, dragPinWirePoint.PinConnection);
+
+                            _greenprints.RemovePinWire(wireOwner, pinConnectionIndex, this);
                             dragPinWirePoint.PinConnection.PinWireElement.RemoveFromHierarchy();
                         }
                     }
@@ -468,22 +439,31 @@ public class GreenprintsUIController : MonoBehaviour
             {
                 pinIcon.RegisterCallback<PointerDownEvent>(evt =>
                 {
-                    if (evt.button != _dragMouseIndex) { return; }
+                    if (evt.button == _dragMouseIndex)
+                    {
+                        Color wireColor = pin is DataPin dataPin ? dataPin.GreenprintsValueType.ValueColor : Color.white;
 
-                    Color wireColor = pin is DataPin dataPin ? dataPin.GreenprintsValueType.ValueColor : Color.white;
+                        Vector2 startPointPosition = GetCanvasPosition(pinIcon.worldBound.center, Vector2.zero);
 
-                    Vector2 startPointPosition = GetCanvasPosition(pinIcon.worldBound.center, Vector2.zero);
+                        PinConnection newPinConnection = new PinConnection(
+                              pin
+                            , null
+                            , this
+                            , pinIcon
+                            , GetMousePosition());
 
-                    PinConnection newPinConnection = new PinConnection(
-                          pin
-                        , null
-                        , this
-                        , pinIcon
-                        , GetMousePosition());
+                        _greenprints.AddPinConnectionToOutputPin(pin, newPinConnection, this);
 
-                    AddPinConnectionToPin(pin, newPinConnection);
+                        evt.StopPropagation();
+                    }
+                    else if (evt.button == _removePinWireMouseIndex)
+                    {
+                        List<PinConnection> pinConnections = _greenprints.GetPinConditionalConnectionsFromOutputPin(pin);
+                        int inputPinIndex = pinConnections.Count - 1;
+                        Pin inputPin = pinConnections[inputPinIndex].InputPin;
 
-                    evt.StopPropagation();
+                        _greenprints.RemovePinWire(pin, inputPinIndex, this);
+                    }
                 });
             }
 
@@ -511,7 +491,7 @@ public class GreenprintsUIController : MonoBehaviour
                 container.Add(pinContainer);
             }
 
-            if (IsPinInput(pin))
+            if (_greenprints.IsPinInput(pin))
             {
                 ConfigurePin(inputPinsContainer, pinIcon, pinName);
             }
@@ -590,14 +570,13 @@ public class GreenprintsUIController : MonoBehaviour
         {
             foreach (Pin pin in uINode.Node.Pins)
             {
-                if (!IsPinInput(pin))
+                if (!_greenprints.IsPinInput(pin))
                 {
-                    foreach (PinConnection pinConnection in GetPinConnectionsFromPin(pin))
+                    foreach (PinConnection pinConnection in _greenprints.GetPinConnectionsFromOutputPin(pin))
                     {
                         VisualElement outputPinIcon = GetPinIcon(uINode, pin);
 
-                        UINode inputPinUINode = _greenprints.UINodes.FirstOrDefault(
-                            uINode => uINode.Node == pinConnection.InputPin.Owner);
+                        UINode inputPinUINode = _greenprints.UINodes.FirstOrDefault(uINode => uINode.Node == pinConnection.InputPin.Owner);
 
                         VisualElement inputPinIcon = GetPinIcon(inputPinUINode, pinConnection.InputPin);
 
