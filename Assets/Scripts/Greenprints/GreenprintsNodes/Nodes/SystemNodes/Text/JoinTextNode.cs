@@ -10,15 +10,13 @@ public class JoinTextNode : NodeConfig
         SetDataOutputPinValue(node, 2, $"{text1}{text2}");
     }
 
-    public override List<Pin> GetPins(Node owner)
+    public override List<Pin> GetPins(Node owner, GreenprintsValueTypesData valueTypesData)
     {
-        GreenprintsValueTypesAssetReferences valueTypes = GreenprintsValueTypesAssetReferences.Instance;
-
         return new List<Pin>()
         {
-              new DataInputPin("Text 1", owner, Greenprints, valueTypes.StringValue)
-            , new DataInputPin("Text 2", owner, Greenprints, valueTypes.StringValue)
-            , new DataOutputPin("Result", owner, Greenprints, valueTypes.StringValue)
+              new DataInputPin("Text 1", owner, Greenprints, valueTypesData.StringValue)
+            , new DataInputPin("Text 2", owner, Greenprints, valueTypesData.StringValue)
+            , new DataOutputPin("Result", owner, Greenprints, valueTypesData.StringValue)
         };
     }
 }

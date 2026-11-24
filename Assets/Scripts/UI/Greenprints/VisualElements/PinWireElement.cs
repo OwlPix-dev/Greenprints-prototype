@@ -1,7 +1,6 @@
-using System.Collections.Generic;
-using TMPro;
 using UnityEngine;
 using UnityEngine.UIElements;
+using NewPowerSupply.UI.UIGreenprints;
 
 public class PinWireElement : VisualElement
 {
@@ -18,7 +17,7 @@ public class PinWireElement : VisualElement
 
         PickColor();
 
-        _wireWidth = GreenprintsUIAssetReferences.Instance.GreenprintsUIData.PinWireWidth;
+        _wireWidth = _greenprintsUIController.UIData.PinWireWidth;
 
         generateVisualContent += OnGenerateVisualContent;
     }
@@ -64,7 +63,7 @@ public class PinWireElement : VisualElement
 
         GreenprintsValueType valueType = GetValueType(inputPin != null ? inputPin : _pinConnection.WireOwner);
 
-        PinUIData pinUIData = _greenprintsUIController.GetPinUIData(valueType);
+        PinUIData pinUIData = PinUIUtility.GetPinUIData(valueType, _greenprintsUIController.UIData, _greenprintsUIController.ValueTypesData);
 
         _wireColor = pinUIData.PinWireColor;
         MarkDirtyRepaint();

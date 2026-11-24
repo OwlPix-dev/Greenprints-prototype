@@ -12,15 +12,13 @@ public abstract class MathOperationNode : NodeConfig
         SetDataOutputPinValue(node, 2, GetMathOperation(num1, num2));
     }
 
-    public override List<Pin> GetPins(Node owner)
+    public override List<Pin> GetPins(Node owner, GreenprintsValueTypesData valueTypesData)
     {
-        GreenprintsValueTypesAssetReferences valueTypes = GreenprintsValueTypesAssetReferences.Instance;
-
         return new List<Pin>()
         {
-              new DataInputPin("Number 1", owner, Greenprints, valueTypes.FloatValue)
-            , new DataInputPin("Number 2", owner, Greenprints, valueTypes.FloatValue)
-            , new DataOutputPin("Result", owner, Greenprints, valueTypes.FloatValue)
+              new DataInputPin("Number 1", owner, Greenprints, valueTypesData.FloatValue)
+            , new DataInputPin("Number 2", owner, Greenprints, valueTypesData.FloatValue)
+            , new DataOutputPin("Result", owner, Greenprints, valueTypesData.FloatValue)
         };
     }
 

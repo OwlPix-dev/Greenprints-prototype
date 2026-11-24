@@ -1,9 +1,6 @@
 using System;
 using System.Collections.Generic;
-using UnityEditor.Experimental.GraphView;
 using UnityEngine;
-using static UnityEditor.Rendering.CameraUI;
-using static UnityEngine.Rendering.DebugUI;
 
 public abstract class NodeConfig : MonoBehaviour
 {
@@ -27,11 +24,11 @@ public abstract class NodeConfig : MonoBehaviour
 
     public abstract void Active(Node node);
 
-    public abstract List<Pin> GetPins(Node owner);
+    public abstract List<Pin> GetPins(Node owner, GreenprintsValueTypesData valueTypesData);
 
-    public Node GetNode(Vector2 position, Greenprints greenprints)
+    public Node GetNode(Vector2 position, NodeVisualElement nodeTitle, Greenprints greenprints, GreenprintsValueTypesData valueTypesData)
     {
-        return new Node(greenprints, this, position);
+        return new Node(this, nodeTitle, position, valueTypesData);
     }
 
     public void ActiveExecutionOutputPin(Node node, int pinIndex)

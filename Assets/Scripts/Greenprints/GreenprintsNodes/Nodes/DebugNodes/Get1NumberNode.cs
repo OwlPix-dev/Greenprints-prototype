@@ -8,13 +8,11 @@ public class Get1NumberNode : NodeConfig
         SetDataOutputPinValue(node, 0, 1);
     }
 
-    public override List<Pin> GetPins(Node owner)
+    public override List<Pin> GetPins(Node owner, GreenprintsValueTypesData valueTypesData)
     {
-        GreenprintsValueTypesAssetReferences valueTypes = GreenprintsValueTypesAssetReferences.Instance;
-
         return new List<Pin>()
         {
-            new DataOutputPin("1" , owner, Greenprints, valueTypes.FloatValue)
+            new DataOutputPin("1" , owner, Greenprints, valueTypesData.FloatValue)
         };
     }
 }

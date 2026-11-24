@@ -1,6 +1,6 @@
-using System.Linq;
 using UnityEngine;
 using UnityEngine.UIElements;
+using NewPowerSupply.UI;
 
 public class DragPinWirePoint : GreenprintsDragElement
 {
@@ -25,10 +25,12 @@ public class DragPinWirePoint : GreenprintsDragElement
 
     public override void MoveDragElement()
     {
-        Vector2 position = GreenprintsUIController.GetDragElementPosition(
+        Vector2 position = DragAndDropUtility.GetDragElementPosition(
               GreenprintsUIController.PinWirePointOffset
             , GreenprintsUIController.PinWirePointGridSize
-            , _pointTitle);
+            , _pointTitle
+            , GreenprintsUIController.CanvasScroller
+            , GreenprintsUIController.Canvas);
 
         _pointTitle.style.left = position.x;
         _pointTitle.style.top = position.y;

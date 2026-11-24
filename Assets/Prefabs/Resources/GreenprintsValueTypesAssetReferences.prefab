@@ -44,7 +44,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0da4c4840195e73499ea4873a4530355, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _intValue: {fileID: 11400000, guid: d7caaaf6f8044b9409f84b494fd1200e, type: 2}
-  _floatValue: {fileID: 11400000, guid: 58e6aa7b49f3835429d8de9d6e708c5f, type: 2}
-  _boolValue: {fileID: 11400000, guid: 506107cdd1aef1c4fa047a55601ccbae, type: 2}
-  _stringValue: {fileID: 11400000, guid: 6136c98540cd39345a07b2961ea68dcc, type: 2}
+  _greenprintsValueTypesData: {fileID: 11400000, guid: a026afdb234110147abc9cfa97313c9e, type: 2}

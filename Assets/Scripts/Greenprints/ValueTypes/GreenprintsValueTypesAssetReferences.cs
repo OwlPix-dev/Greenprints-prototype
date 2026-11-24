@@ -2,17 +2,11 @@ using UnityEngine;
 
 public class GreenprintsValueTypesAssetReferences : MonoBehaviour
 {
-    [SerializeField] private GreenprintsValueType _intValue;
-    [SerializeField] private GreenprintsValueType _floatValue;
-    [SerializeField] private GreenprintsValueType _boolValue;
-    [SerializeField] private GreenprintsValueType _stringValue;
+    [SerializeField] private GreenprintsValueTypesData _greenprintsValueTypesData;
 
     private static GreenprintsValueTypesAssetReferences _instance;
 
-    public GreenprintsValueType IntValue => _intValue;
-    public GreenprintsValueType FloatValue => _floatValue;
-    public GreenprintsValueType BoolValue => _boolValue;
-    public GreenprintsValueType StringValue => _stringValue;
+    public GreenprintsValueTypesData GreenprintsValueTypesData => _greenprintsValueTypesData;
 
     public static GreenprintsValueTypesAssetReferences Instance
     {

@@ -22,7 +22,7 @@ public class ActiveNode : NodeConfig
         ActiveExecutionOutputPin(node, 0);
     }
 
-    public override List<Pin> GetPins(Node owner)
+    public override List<Pin> GetPins(Node owner, GreenprintsValueTypesData valueTypesData)
     {
         return new List<Pin>()
         {

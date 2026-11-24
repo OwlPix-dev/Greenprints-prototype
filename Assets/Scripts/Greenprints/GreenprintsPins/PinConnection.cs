@@ -1,5 +1,7 @@
+using NewPowerSupply.UI;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 using UnityEngine.UIElements;
 
 public class PinConnection
@@ -58,7 +60,7 @@ public class PinConnection
     private VisualElement GetPointTitle(Vector2 pointPosition)
     {
         VisualElement point = new VisualElement();
-        point.AddToClassList(GreenprintsUIAssetReferences.Instance.GreenprintsUIData.PinWirePointClassName);
+        point.AddToClassList(_greenprintsUIController.UIData.PinWirePointClassName);
 
         point.style.left = pointPosition.x;
         point.style.top = pointPosition.y;
@@ -86,7 +88,11 @@ public class PinConnection
 
         void AddPointInList(GeometryChangedEvent evt)
         {
-            PinConnectionPointTitle pointTitle = new PinConnectionPointTitle(pointElement, _pinWireElement, _greenprintsUIController);
+            PinConnectionPointTitle pointTitle = new PinConnectionPointTitle(
+                  pointElement
+                , _pinWireElement
+                , _greenprintsUIController);
+
             _points.Insert(pointIndex, new PinConnectionPoint(pointTitle, _pinWireElement));
 
             pointElement.UnregisterCallback<GeometryChangedEvent>(AddPointInList);
@@ -109,10 +115,16 @@ public class PinConnection
         {
             PinConnectionPoint point = _points[pointIndex];
 
-            point.PointElement = new PinConnectionPointTitle(GetPointTitle(point.Position), _pinWireElement, _greenprintsUIController);
+            point.PointElement = new PinConnectionPointTitle(
+                  GetPointTitle(point.Position)
+                , _pinWireElement
+                , _greenprintsUIController);
         }
 
-        _points[_points.Count - 1].PointElement = new PinConnectionPinTitle(inputPinTitle, _pinWireElement, _greenprintsUIController);
+        _points[_points.Count - 1].PointElement = new PinConnectionPinTitle(
+              inputPinTitle
+            , _pinWireElement
+            , _greenprintsUIController);
 
         _pinWireElement.MarkDirtyRepaint();
     }
@@ -168,7 +180,10 @@ public abstract class PinConnectionPointElement
 
     public GreenprintsUIController GreenprintsUIController => _greenprintsUIController;
 
-    public PinConnectionPointElement(VisualElement pointTitle, PinWireElement pinWireElement, GreenprintsUIController greenprintsUIController)
+    public PinConnectionPointElement(
+          VisualElement pointTitle
+        , PinWireElement pinWireElement
+        , GreenprintsUIController greenprintsUIController)
     {
         _pointTitle = pointTitle;
         _pinWireElement = pinWireElement;
@@ -187,7 +202,10 @@ public abstract class PinConnectionPointElement
 
 public class PinConnectionPointTitle : PinConnectionPointElement
 {
-    public PinConnectionPointTitle(VisualElement pointElement, PinWireElement pinWireElement, GreenprintsUIController greenprintsUIController)
+    public PinConnectionPointTitle(
+          VisualElement pointElement
+        , PinWireElement pinWireElement
+        , GreenprintsUIController greenprintsUIController)
         : base(pointElement, pinWireElement, greenprintsUIController) { }
 
     public override Vector2 GetPointElementPosition()
@@ -213,7 +231,12 @@ public class PinConnectionPinTitle : PinConnectionPointElement
 
     public override Vector2 GetPointElementPosition()
     {
-        return GreenprintsUIController.GetCanvasPosition(PointTitle.worldBound.center, Vector2.zero);
+        //return GreenprintsUIController.GetCanvasPosition(PointTitle.worldBound.center, Vector2.zero);
+        return DragAndDropUtility.GetCanvasPosition(
+              PointTitle.worldBound.center
+            , Vector2.zero
+            , GreenprintsUIController.CanvasScroller
+            , GreenprintsUIController.Canvas);
     }
 
     public override void RegisterCallbackMarkDirtyRepaint()

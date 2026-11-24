@@ -1,5 +1,8 @@
+using System.Linq;
 using UnityEngine;
 using UnityEngine.UIElements;
+using NewPowerSupply.Geenprints.Pins;
+using NewPowerSupply.UI;
 
 public class DragNode : GreenprintsDragElement
 {
@@ -17,19 +20,19 @@ public class DragNode : GreenprintsDragElement
           GreenprintsUIController greenprintsUIController
         , Node node
         , NodeConfig nodeConfig
-        , VisualElement nodeTitle
+        , NodeVisualElement nodeTitle
         , Vector2 nodeOffset
         , Vector2 startPosition)
         : base(greenprintsUIController)
     {
         _nodeTitle = nodeTitle;
 
-        _node = node ?? nodeConfig.GetNode(Vector2.zero, GreenprintsUIController.Greenprints);
+        _node = node ?? nodeConfig.GetNode(Vector2.zero, nodeTitle, GreenprintsUIController.Greenprints, GreenprintsUIController.ValueTypesData);
 
         _nodeOffset = nodeOffset;
         _startPosition = startPosition;
 
-        string nodeNameClassName = GreenprintsUIAssetReferences.Instance.GreenprintsUIData.DragNodeNameClassName;
+        string nodeNameClassName = GreenprintsUIController.UIData.DragNodeNameClassName;
         _nodeName = GreenprintsUIController.Root.Q<Label>(className: nodeNameClassName);
 
         _nodeName.style.backgroundColor = _node.NodeConfig.NodeAffiliation.AffiliationColor;
@@ -43,14 +46,16 @@ public class DragNode : GreenprintsDragElement
 
     public override void MoveDragElement()
     {
-        Vector2 position = GreenprintsUIController.GetMousePosition();
+        Vector2 position = UIPositionUtility.GetMousePosition();
 
         if (_currentDragElement == _nodeTitle)
         {
-            position = GreenprintsUIController.GetDragElementPosition(
+            position = DragAndDropUtility.GetDragElementPosition(
                   _nodeOffset
                 , GreenprintsUIController.NodeGridSize
-                , _nodeTitle
+                , _nodeTitle 
+                , GreenprintsUIController.CanvasScroller
+                , GreenprintsUIController.Canvas
                 , position);
         }
 
@@ -60,28 +65,26 @@ public class DragNode : GreenprintsDragElement
 
     public override void DropDragElement()
     {
-        bool isNodeInList = GreenprintsUIController.GetUINodeFromTitle(_nodeTitle) != null;
+        bool isNodeInList = GreenprintsUIController.Greenprints.Nodes.FirstOrDefault(node => node.NodeTitle == _nodeTitle) != null;
 
         if (_currentDragElement == _nodeTitle)
         {
             if (!isNodeInList)
             {
-                GreenprintsUIController.Greenprints.UINodes.Add(new UINode(_node, _nodeTitle));
+                GreenprintsUIController.Greenprints.Nodes.Add(_node);
             }
         }
         else
         {
-            VisualElement pickElement = GreenprintsUIController.GetPickElement();
+            VisualElement pickElement = UIPositionUtility.GetPickElement(GreenprintsUIController.Root);
 
             if (pickElement == GreenprintsUIController.NodeManagerBtn)
             {
                 if (isNodeInList)
                 {
-                    GreenprintsUIController.Greenprints.RemoveNodePinsConnections(_node, GreenprintsUIController);
+                    PinUtility.RemoveNodePinsConnections(_node, GreenprintsUIController.UIData, GreenprintsUIController.ValueTypesData);
 
-                    UINode removeUINode = GreenprintsUIController.GetUINodeFromTitle(_nodeTitle);
-
-                    GreenprintsUIController.Greenprints.UINodes.Remove(removeUINode);
+                    GreenprintsUIController.Greenprints.Nodes.Remove(_node);
                 }
 
                 _nodeTitle?.RemoveFromHierarchy();
@@ -132,7 +135,7 @@ public class DragNode : GreenprintsDragElement
     {
         if (_nodeTitle == null)
         {
-            _nodeTitle = GreenprintsUIController.RenderNode(_node);
+            _nodeTitle = new NodeVisualElement(_node, GreenprintsUIController);
 
             GreenprintsUIController.NodesLayer.Add(_nodeTitle);
         }

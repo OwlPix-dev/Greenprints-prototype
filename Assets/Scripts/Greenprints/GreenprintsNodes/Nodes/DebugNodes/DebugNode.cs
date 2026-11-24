@@ -11,14 +11,12 @@ public class DebugNode : NodeConfig
         ActiveExecutionOutputPin(node, 2);
     }
 
-    public override List<Pin> GetPins(Node owner)
+    public override List<Pin> GetPins(Node owner, GreenprintsValueTypesData valueTypesData)
     {
-        GreenprintsValueTypesAssetReferences valueTypes = GreenprintsValueTypesAssetReferences.Instance;
-
         return new List<Pin>()
         {
               new ExecutionInputPin("", owner, Greenprints)
-            , new DataInputPin ("Text", owner, Greenprints, valueTypes.StringValue)
+            , new DataInputPin ("Text", owner, Greenprints, valueTypesData.StringValue)
             , new ExecutionOutputPin("", owner, Greenprints)
         };
     }

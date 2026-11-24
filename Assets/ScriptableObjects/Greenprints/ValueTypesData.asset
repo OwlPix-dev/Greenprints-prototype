@@ -1,0 +1,18 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b69257c77a6a23c45b309a83c61c51ba, type: 3}
+  m_Name: ValueTypesData
+  m_EditorClassIdentifier: Assembly-CSharp::GreenprintsValueTypesData
+  _intValue: {fileID: 11400000, guid: d7caaaf6f8044b9409f84b494fd1200e, type: 2}
+  _floatValue: {fileID: 11400000, guid: 58e6aa7b49f3835429d8de9d6e708c5f, type: 2}
+  _boolValue: {fileID: 11400000, guid: 506107cdd1aef1c4fa047a55601ccbae, type: 2}
+  _stringValue: {fileID: 11400000, guid: 6136c98540cd39345a07b2961ea68dcc, type: 2}
